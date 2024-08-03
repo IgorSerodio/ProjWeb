@@ -15,25 +15,64 @@ app.use(express_1.default.json());
 // Rotas para o modelo Receita
 app.post('/receitas', async (req, res) => {
     try {
-        const { nome, descricao, idDoUsuario } = req.body;
+        const { nome, descricao, idDoUsuario, ingredientes } = req.body;
         const receita = await prisma.receita.create({
-            data: { nome, descricao, idDoUsuario },
+            data: { nome, descricao, idDoUsuario }
         });
-        res.status(201).json(receita);
+
+        const ingredientesReceita = ingredientes.map(ingrediente => ({
+            idDaReceita: receita.id,
+            idDoIngrediente: ingrediente[0],
+            quantidade: ingrediente[1],
+        }));
+
+        await prisma.ingredienteReceita.createMany({
+            data: ingredientesReceita
+        });
+
+        res.status(201).json({ ...receita, ingredientesReceita });
     } catch (error) {
         res.status(500).json({ error: 'Erro ao criar receita' });
+    }
+});
+
+app.get('/receitas/usuario/:idDoUsuario', async (req, res) => {
+    try {
+        const { idDoUsuario } = req.params;
+        const receitas = await prisma.receita.findMany({
+            where: { idDoUsuario: parseInt(idDoUsuario) },
+        });
+        res.json(receitas);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar receitas por usuário' });
     }
 });
 
 app.put('/receitas/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, descricao } = req.body;
+        const { nome, descricao, ingredientes } = req.body;
+
+        await prisma.ingredienteReceita.deleteMany({
+            where: { idDaReceita: parseInt(id) },
+        });
+
         const receita = await prisma.receita.update({
             where: { id: parseInt(id) },
-            data: { nome, descricao },
+            data: { nome, descricao }
         });
-        res.json(receita);
+
+        const ingredientesReceita = ingredientes.map(ingrediente => ({
+            idDaReceita: receita.id,
+            idDoIngrediente: ingrediente[0],
+            quantidade: ingrediente[1],
+        }));
+
+        await prisma.ingredienteReceita.createMany({
+            data: ingredientesReceita
+        });
+
+        res.json({ ...receita, ingredientesReceita });
     } catch (error) {
         res.status(500).json({ error: 'Erro ao atualizar receita' });
     }
@@ -42,9 +81,15 @@ app.put('/receitas/:id', async (req, res) => {
 app.delete('/receitas/:id', async (req, res) => {
     try {
         const { id } = req.params;
+
+        await prisma.ingredienteReceita.deleteMany({
+            where: { idDaReceita: parseInt(id) },
+        });
+
         await prisma.receita.delete({
             where: { id: parseInt(id) },
         });
+
         res.status(204).send();
     } catch (error) {
         res.status(500).json({ error: 'Erro ao deletar receita' });
@@ -63,6 +108,20 @@ app.post('/usuarios', async (req, res) => {
         res.status(500).json({ error: 'Erro ao criar usuário' });
     }
 });
+
+// Buscar usuário por email
+app.get('/usuarios/email/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const usuario = await prisma.usuario.findUnique({
+            where: { email: email },
+        });
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar usuário por email' });
+    }
+});
+
 
 app.get('/usuarios/:id', async (req, res) => {
     try {
@@ -90,57 +149,6 @@ app.put('/usuarios/:id', async (req, res) => {
     }
 });
 
-// Rotas para o modelo IngredienteReceita
-app.get('/ingredientes-receitas/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const ingredienteReceita = await prisma.ingredienteReceita.findUnique({
-            where: { idDaReceita_idDoIngrediente: { idDaReceita: parseInt(id), idDoIngrediente: parseInt(req.query.idDoIngrediente) } },
-        });
-        res.json(ingredienteReceita);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar ingrediente de receita' });
-    }
-});
-
-app.post('/ingredientes-receitas', async (req, res) => {
-    try {
-        const { idDaReceita, idDoIngrediente, quantidade } = req.body;
-        const ingredienteReceita = await prisma.ingredienteReceita.create({
-            data: { idDaReceita, idDoIngrediente, quantidade },
-        });
-        res.status(201).json(ingredienteReceita);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao criar ingrediente de receita' });
-    }
-});
-
-app.put('/ingredientes-receitas/:idDaReceita/:idDoIngrediente', async (req, res) => {
-    try {
-        const { idDaReceita, idDoIngrediente } = req.params;
-        const { quantidade } = req.body;
-        const ingredienteReceita = await prisma.ingredienteReceita.update({
-            where: { idDaReceita_idDoIngrediente: { idDaReceita: parseInt(idDaReceita), idDoIngrediente: parseInt(idDoIngrediente) } },
-            data: { quantidade },
-        });
-        res.json(ingredienteReceita);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar quantidade do ingrediente de receita' });
-    }
-});
-
-app.delete('/ingredientes-receitas/:idDaReceita/:idDoIngrediente', async (req, res) => {
-    try {
-        const { idDaReceita, idDoIngrediente } = req.params;
-        await prisma.ingredienteReceita.delete({
-            where: { idDaReceita_idDoIngrediente: { idDaReceita: parseInt(idDaReceita), idDoIngrediente: parseInt(idDoIngrediente) } },
-        });
-        res.status(204).send();
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao deletar ingrediente de receita' });
-    }
-});
-
 // Buscar receitas com base em uma lista de ingredientes
 app.get('/receitas-por-ingredientes', async (req, res) => {
     try {
@@ -150,7 +158,7 @@ app.get('/receitas-por-ingredientes', async (req, res) => {
             where: {
                 IngredienteReceita: {
                     some: {
-                        ingredienteId: {
+                        idDoIngrediente: {
                             in: ingredientesList,
                         },
                     },
@@ -170,6 +178,18 @@ app.get('/ingredientes', async (req, res) => {
         res.json(ingredientes);
     } catch (error) {
         res.status(500).json({ error: 'Erro ao buscar ingredientes' });
+    }
+});
+
+app.get('/ingredientes/nome/:nome', async (req, res) => {
+    try {
+        const { nome } = req.params;
+        const ingrediente = await prisma.ingrediente.findUnique({
+            where: { nome: nome },
+        });
+        res.json(ingrediente);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar ingrediente pelo nome' });
     }
 });
 

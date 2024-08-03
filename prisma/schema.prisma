@@ -35,7 +35,7 @@ model Receita {
 
 model Ingrediente {
   id                 Int                  @id @default(autoincrement())
-  nome               String
+  nome               String               @unique
   tipoDeMedida       TipoDeMedida
   IngredienteReceita IngredienteReceita[]
 }
