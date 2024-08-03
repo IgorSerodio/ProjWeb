@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int         @id @default(autoincrement())
+  email     String      @unique
+  hashSenha String
+  apelido   String?
+  adm       Boolean     @default(false)
+  Receita   Receita[]
+  Avaliacao Avaliacao[]
+}
+
+model Receita {
+  id                 Int                  @id @default(autoincrement())
+  nome               String
+  descricao          String?
+  idDoUsuario        Int
+  usuario            Usuario              @relation(fields: [idDoUsuario], references: [id])
+  IngredienteReceita IngredienteReceita[]
+  Avaliacao          Avaliacao[]
+}
+
+model Ingrediente {
+  id                 Int                  @id @default(autoincrement())
+  nome               String
+  tipoDeMedida       TipoDeMedida
+  IngredienteReceita IngredienteReceita[]
+}
+
+model IngredienteReceita {
+  idDaReceita     Int
+  idDoIngrediente Int
+  quantidade      Float
+
+  receita     Receita     @relation(fields: [idDaReceita], references: [id])
+  ingrediente Ingrediente @relation(fields: [idDoIngrediente], references: [id])
+
+  @@id([idDaReceita, idDoIngrediente])
+}
+
+model Avaliacao {
+  idDoUsuario Int
+  idDaReceita Int
+  nota        Float
+  comentario  String?
+
+  usuario Usuario @relation(fields: [idDoUsuario], references: [id])
+  receita Receita @relation(fields: [idDaReceita], references: [id])
+
+  @@id([idDoUsuario, idDaReceita])
+}
+
+enum TipoDeMedida {
+  UNIDADES
+  GRAMAS
+  MILILITROS
+}
