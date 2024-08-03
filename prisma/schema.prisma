@@ -34,21 +34,20 @@ model Receita {
 }
 
 model Ingrediente {
-  id                 Int                  @id @default(autoincrement())
-  nome               String               @unique
+  nome               String               @id
   tipoDeMedida       TipoDeMedida
   IngredienteReceita IngredienteReceita[]
 }
 
 model IngredienteReceita {
   idDaReceita     Int
-  idDoIngrediente Int
+  nomeDoIngrediente String
   quantidade      Float
 
   receita     Receita     @relation(fields: [idDaReceita], references: [id])
-  ingrediente Ingrediente @relation(fields: [idDoIngrediente], references: [id])
+  ingrediente Ingrediente @relation(fields: [nomeDoIngrediente], references: [nome])
 
-  @@id([idDaReceita, idDoIngrediente])
+  @@id([idDaReceita, nomeDoIngrediente])
 }
 
 model Avaliacao {

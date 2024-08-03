@@ -22,7 +22,7 @@ app.post('/receitas', async (req, res) => {
 
         const ingredientesReceita = ingredientes.map(ingrediente => ({
             idDaReceita: receita.id,
-            idDoIngrediente: ingrediente[0],
+            nomeDoIngrediente: ingrediente[0], 
             quantidade: ingrediente[1],
         }));
 
@@ -41,6 +41,11 @@ app.get('/receitas/usuario/:idDoUsuario', async (req, res) => {
         const { idDoUsuario } = req.params;
         const receitas = await prisma.receita.findMany({
             where: { idDoUsuario: parseInt(idDoUsuario) },
+            include: {
+                IngredienteReceita: {
+                    include: { ingrediente: true }
+                }
+            }
         });
         res.json(receitas);
     } catch (error) {
@@ -64,7 +69,7 @@ app.put('/receitas/:id', async (req, res) => {
 
         const ingredientesReceita = ingredientes.map(ingrediente => ({
             idDaReceita: receita.id,
-            idDoIngrediente: ingrediente[0],
+            nomeDoIngrediente: ingrediente[0],
             quantidade: ingrediente[1],
         }));
 
@@ -122,7 +127,6 @@ app.get('/usuarios/email/:email', async (req, res) => {
     }
 });
 
-
 app.get('/usuarios/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -153,17 +157,22 @@ app.put('/usuarios/:id', async (req, res) => {
 app.get('/receitas-por-ingredientes', async (req, res) => {
     try {
         const { ingredientes } = req.query;
-        const ingredientesList = ingredientes.split(',').map(id => parseInt(id));
+        const ingredientesList = ingredientes.split(',').map(nome => nome.trim());
         const receitas = await prisma.receita.findMany({
             where: {
                 IngredienteReceita: {
                     some: {
-                        idDoIngrediente: {
+                        nomeDoIngrediente: {
                             in: ingredientesList,
                         },
                     },
                 },
             },
+            include: {
+                IngredienteReceita: {
+                    include: { ingrediente: true }
+                }
+            }
         });
         res.json(receitas);
     } catch (error) {
@@ -190,18 +199,6 @@ app.get('/ingredientes/nome/:nome', async (req, res) => {
         res.json(ingrediente);
     } catch (error) {
         res.status(500).json({ error: 'Erro ao buscar ingrediente pelo nome' });
-    }
-});
-
-app.get('/ingredientes/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const ingrediente = await prisma.ingrediente.findUnique({
-            where: { id: parseInt(id) },
-        });
-        res.json(ingrediente);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar ingrediente' });
     }
 });
 
