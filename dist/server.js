@@ -24,7 +24,7 @@ const swaggerOptions = {
     swaggerDefinition: {
         openapi: '3.0.0',
         info: {
-            title: 'API de Receitas',
+            title: 'Na Minha Geladeira',
             version: '1.0.0',
             description: 'API para gerenciar receitas, ingredientes e avaliações',
         },
@@ -33,6 +33,10 @@ const swaggerOptions = {
 };
 const swaggerDocs = (0, swagger_jsdoc_1.default)(swaggerOptions);
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocs));
+// Endpoint adicional para servir o JSON
+app.get('/swagger.json', (req, res) => {
+    res.json(swaggerDocs);
+});
 /**
  * @swagger
  * tags:
