@@ -245,80 +245,17 @@ app.put('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).json({ error: 'Erro ao atualizar usuário' });
     }
 }));
-/**
- * @swagger
- * tags:
- *   name: Receitas
- *   description: Gerencia receitas.
- */
-/**
- * @swagger
- * /receitas:
- *   post:
- *     tags: [Receitas]
- *     summary: Cria uma nova receita
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               descricao:
- *                 type: string
- *               idDoUsuario:
- *                 type: integer
- *               ingredientesReceita:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         nomeDoIngrediente:
- *                           type: string
- *                         quantidade:
- *                           type: number
- *     responses:
- *       201:
- *         description: Receita criada com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 nome:
- *                   type: string
- *                 descricao:
- *                   type: string
- *                 idDoUsuario:
- *                   type: integer
- *                 ingredientesReceita:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         idDaReceita:
- *                           type: integer
- *                         nomeDoIngrediente:
- *                           type: string
- *                         quantidade:
- *                           type: number
- *       500:
- *         description: Erro ao criar receita
- */
 app.post('/receitas', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { nome, descricao, idDoUsuario, ingredientes } = req.body;
         const receita = yield prisma.receita.create({
             data: { nome, descricao, idDoUsuario }
         });
-        const ingredientesReceita = ingredientes.map(([nomeDoIngrediente, quantidade]) => ({
+        console.log(receita, ingredientes);
+        const ingredientesReceita = ingredientes.map((ingrediente) => ({
             idDaReceita: receita.id,
-            nomeDoIngrediente,
-            quantidade,
+            nomeDoIngrediente: ingrediente.nomeDoIngrediente,
+            quantidade: ingrediente.quantidade,
         }));
         yield prisma.ingredienteReceita.createMany({
             data: ingredientesReceita
@@ -512,7 +449,7 @@ app.get('/receitas/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0
  *                 descricao:
  *                   type: string
  *                   example: "Descrição da receita atualizada."
- *                 ingredientesReceita:
+ *                 ingredientes:
  *                   type: array
  *                   items:
  *                     type: object
@@ -537,7 +474,7 @@ app.get('/receitas/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0
 app.put('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { nome, descricao, ingredientes } = req.body;
+        const { nome, descricao, idDoUsuario, ingredientes } = req.body;
         yield prisma.ingredienteReceita.deleteMany({
             where: { idDaReceita: parseInt(id) },
         });
@@ -547,9 +484,12 @@ app.put('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
         });
         const ingredientesReceita = ingredientes.map((ingrediente) => ({
             idDaReceita: receita.id,
-            idDoIngrediente: ingrediente[0],
-            quantidade: ingrediente[1],
+            nomeDoIngrediente: ingrediente.nomeDoIngrediente,
+            quantidade: ingrediente.quantidade,
         }));
+        yield prisma.ingredienteReceita.deleteMany({
+            where: { idDaReceita: parseInt(id) },
+        });
         yield prisma.ingredienteReceita.createMany({
             data: ingredientesReceita
         });

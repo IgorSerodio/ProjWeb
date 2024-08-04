@@ -265,7 +265,7 @@ app.put('/usuarios/:id', async (req: Request, res: Response) => {
  *                 type: string
  *               idDoUsuario:
  *                 type: integer
- *               ingredientesReceita:
+ *               ingredientes:
  *                     type: array
  *                     items:
  *                       type: object
@@ -304,17 +304,25 @@ app.put('/usuarios/:id', async (req: Request, res: Response) => {
  *       500:
  *         description: Erro ao criar receita
  */
+
+interface ingredienteReceitaReq {
+  nomeDoIngrediente: string, 
+  quantidade: number
+}
+
 app.post('/receitas', async (req: Request, res: Response) => {
   try {
-    const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: {nomeDoIngrediente: string, quantidade: number}[] } = req.body;
+    const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: ingredienteReceitaReq[] } = req.body;
     const receita = await prisma.receita.create({
       data: { nome, descricao, idDoUsuario }
     });
 
-    const ingredientesReceita = ingredientes.map(({nomeDoIngrediente, quantidade}) => ({
+    console.log(receita, ingredientes)
+
+    const ingredientesReceita = ingredientes.map((ingrediente) => ({
       idDaReceita: receita.id,
-      nomeDoIngrediente,
-      quantidade,
+      nomeDoIngrediente: ingrediente.nomeDoIngrediente,
+      quantidade: ingrediente.quantidade,
     }));
 
     await prisma.ingredienteReceita.createMany({
@@ -510,7 +518,7 @@ app.get('/receitas/ingredientes', async (req: Request, res: Response) => {
  *                 descricao:
  *                   type: string
  *                   example: "Descrição da receita atualizada."
- *                 ingredientesReceita:
+ *                 ingredientes:
  *                   type: array
  *                   items:
  *                     type: object
@@ -535,7 +543,7 @@ app.get('/receitas/ingredientes', async (req: Request, res: Response) => {
 app.put('/receitas/:id', async (req: Request, res: Response) => {
   try {
       const { id } = req.params;
-      const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: {nomeDoIngrediente: string, quantidade: number}[] } = req.body;
+      const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: ingredienteReceitaReq[] } = req.body;
 
       await prisma.ingredienteReceita.deleteMany({
           where: { idDaReceita: parseInt(id) },
@@ -546,10 +554,10 @@ app.put('/receitas/:id', async (req: Request, res: Response) => {
           data: { nome, descricao }
       });
 
-      const ingredientesReceita = ingredientes.map(({nomeDoIngrediente, quantidade}) => ({
+      const ingredientesReceita = ingredientes.map((ingrediente) => ({
         idDaReceita: receita.id,
-        nomeDoIngrediente,
-        quantidade,
+        nomeDoIngrediente: ingrediente.nomeDoIngrediente,
+        quantidade: ingrediente.quantidade,
       }));
 
       await prisma.ingredienteReceita.deleteMany({
