@@ -43,6 +43,48 @@ app.get('/swagger.json', (req, res) => {
  *   name: Usuarios
  *   description: Gerencia usuários.
  */
+/**
+ * @swagger
+ * /usuarios:
+ *   post:
+ *     tags: [Usuarios]
+ *     summary: Cria um novo usuário
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               hashSenha:
+ *                 type: string
+ *               apelido:
+ *                 type: string
+ *               adm:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Usuário criado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 email:
+ *                   type: string
+ *                 hashSenha:
+ *                   type: string
+ *                 apelido:
+ *                   type: string
+ *                 adm:
+ *                   type: boolean
+ *       500:
+ *         description: Erro ao criar usuário
+ */
 app.post('/usuarios', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, hashSenha, apelido, adm } = req.body;
@@ -684,6 +726,44 @@ app.post('/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (error) {
         res.status(500).json({ error: 'Erro ao criar ingrediente' });
+    }
+}));
+/**
+ * @swagger
+ * /ingredientes/{nome}:
+ *   delete:
+ *     tags: [Ingredientes]
+ *     summary: Deleta um ingrediente pelo nome
+ *     parameters:
+ *       - name: nome
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Ingrediente deletado com sucesso
+ *       500:
+ *         description: Erro ao deletar ingrediente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erro ao deletar ingrediente"
+ */
+app.delete('/ingredientes/:nome', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { nome } = req.params;
+        yield prisma.ingrediente.delete({
+            where: { nome: nome },
+        });
+        res.status(204).send();
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Erro ao deletar ingrediente' });
     }
 }));
 /**
