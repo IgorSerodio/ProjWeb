@@ -306,12 +306,12 @@ app.put('/usuarios/:id', async (req: Request, res: Response) => {
  */
 app.post('/receitas', async (req: Request, res: Response) => {
   try {
-    const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: [string, number][] } = req.body;
+    const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: {nomeDoIngrediente: string, quantidade: number}[] } = req.body;
     const receita = await prisma.receita.create({
       data: { nome, descricao, idDoUsuario }
     });
 
-    const ingredientesReceita = ingredientes.map(([nomeDoIngrediente, quantidade]) => ({
+    const ingredientesReceita = ingredientes.map(({nomeDoIngrediente, quantidade}) => ({
       idDaReceita: receita.id,
       nomeDoIngrediente,
       quantidade,
@@ -535,7 +535,7 @@ app.get('/receitas/ingredientes', async (req: Request, res: Response) => {
 app.put('/receitas/:id', async (req: Request, res: Response) => {
   try {
       const { id } = req.params;
-      const { nome, descricao, ingredientes } = req.body;
+      const { nome, descricao, idDoUsuario, ingredientes }: { nome: string; descricao: string; idDoUsuario: number; ingredientes: {nomeDoIngrediente: string, quantidade: number}[] } = req.body;
 
       await prisma.ingredienteReceita.deleteMany({
           where: { idDaReceita: parseInt(id) },
@@ -546,11 +546,15 @@ app.put('/receitas/:id', async (req: Request, res: Response) => {
           data: { nome, descricao }
       });
 
-      const ingredientesReceita = ingredientes.map((ingrediente: [string, number][]) => ({
-          idDaReceita: receita.id,
-          idDoIngrediente: ingrediente[0],
-          quantidade: ingrediente[1],
+      const ingredientesReceita = ingredientes.map(({nomeDoIngrediente, quantidade}) => ({
+        idDaReceita: receita.id,
+        nomeDoIngrediente,
+        quantidade,
       }));
+
+      await prisma.ingredienteReceita.deleteMany({
+        where: { idDaReceita: parseInt(id) },
+      });
 
       await prisma.ingredienteReceita.createMany({
           data: ingredientesReceita
