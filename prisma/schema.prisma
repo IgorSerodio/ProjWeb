@@ -19,8 +19,8 @@ model Usuario {
   hashSenha String
   apelido   String?
   adm       Boolean     @default(false)
-  Receita   Receita[]
-  Avaliacao Avaliacao[]
+  receitas   Receita[]
+  avaliacoes Avaliacao[]
 }
 
 model Receita {
@@ -29,14 +29,14 @@ model Receita {
   descricao          String?
   idDoUsuario        Int
   usuario            Usuario              @relation(fields: [idDoUsuario], references: [id])
-  IngredienteReceita IngredienteReceita[]
-  Avaliacao          Avaliacao[]
+  ingredientesReceita IngredienteReceita[]
+  avaliacoes          Avaliacao[]
 }
 
 model Ingrediente {
   nome               String               @id
   tipoDeMedida       TipoDeMedida
-  IngredienteReceita IngredienteReceita[]
+  ingredientesReceita IngredienteReceita[]
 }
 
 model IngredienteReceita {

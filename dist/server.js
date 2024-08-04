@@ -205,7 +205,150 @@ app.put('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 /**
  * @swagger
- * /receitas-por-ingredientes:
+ * tags:
+ *   name: Receitas
+ *   description: Gerencia receitas.
+ */
+/**
+ * @swagger
+ * /receitas:
+ *   post:
+ *     tags: [Receitas]
+ *     summary: Cria uma nova receita
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               descricao:
+ *                 type: string
+ *               idDoUsuario:
+ *                 type: integer
+ *               ingredientesReceita:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *     responses:
+ *       201:
+ *         description: Receita criada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 nome:
+ *                   type: string
+ *                 descricao:
+ *                   type: string
+ *                 idDoUsuario:
+ *                   type: integer
+ *                 ingredientesReceita:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         idDaReceita:
+ *                           type: integer
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *       500:
+ *         description: Erro ao criar receita
+ */
+app.post('/receitas', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { nome, descricao, idDoUsuario, ingredientes } = req.body;
+        const receita = yield prisma.receita.create({
+            data: { nome, descricao, idDoUsuario }
+        });
+        const ingredientesReceita = ingredientes.map(([nomeDoIngrediente, quantidade]) => ({
+            idDaReceita: receita.id,
+            nomeDoIngrediente,
+            quantidade,
+        }));
+        yield prisma.ingredienteReceita.createMany({
+            data: ingredientesReceita
+        });
+        res.status(201).json(Object.assign(Object.assign({}, receita), { ingredientesReceita }));
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Erro ao criar receita' });
+    }
+}));
+/**
+ * @swagger
+ * /receitas/usuario/{idDoUsuario}:
+ *   get:
+ *     tags: [Receitas]
+ *     summary: Busca receitas por ID do usuário
+ *     parameters:
+ *       - name: idDoUsuario
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de receitas do usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nome:
+ *                     type: string
+ *                   descricao:
+ *                     type: string
+ *                   idDoUsuario:
+ *                     type: integer
+ *                   ingredientesReceita:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         idDaReceita:
+ *                           type: integer
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *       500:
+ *         description: Erro ao buscar receitas do usuário
+ */
+app.get('/receitas/usuario/:idDoUsuario', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { idDoUsuario } = req.params;
+        const receitas = yield prisma.receita.findMany({
+            where: { idDoUsuario: parseInt(idDoUsuario) },
+            include: {
+                ingredientesReceita: true,
+            },
+        });
+        res.json(receitas);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar receitas do usuário' });
+    }
+}));
+/**
+ * @swagger
+ * /receitas/ingredientes:
  *   get:
  *     tags: [Receitas]
  *     summary: Busca receitas com base em uma lista de ingredientes
@@ -233,11 +376,13 @@ app.put('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
  *                     type: string
  *                   idDoUsuario:
  *                     type: integer
- *                   IngredienteReceita:
+ *                   ingredientesReceita:
  *                     type: array
  *                     items:
  *                       type: object
  *                       properties:
+ *                         idDaReceita:
+ *                           type: integer
  *                         nomeDoIngrediente:
  *                           type: string
  *                         quantidade:
@@ -245,13 +390,13 @@ app.put('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
  *       500:
  *         description: Erro ao buscar receitas por ingredientes
  */
-app.get('/receitas-por-ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/receitas/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { ingredientes } = req.query;
         const ingredientesList = ingredientes.split(',').map(nome => nome.trim());
         const receitas = yield prisma.receita.findMany({
             where: {
-                IngredienteReceita: {
+                ingredientesReceita: {
                     some: {
                         nomeDoIngrediente: {
                             in: ingredientesList,
@@ -260,7 +405,7 @@ app.get('/receitas-por-ingredientes', (req, res) => __awaiter(void 0, void 0, vo
                 },
             },
             include: {
-                IngredienteReceita: {
+                ingredientesReceita: {
                     include: { ingrediente: true }
                 }
             }
@@ -269,6 +414,151 @@ app.get('/receitas-por-ingredientes', (req, res) => __awaiter(void 0, void 0, vo
     }
     catch (error) {
         res.status(500).json({ error: 'Erro ao buscar receitas por ingredientes' });
+    }
+}));
+/**
+ * @swagger
+ * /receitas/{id}:
+ *   put:
+ *     tags: [Receitas]
+ *     summary: Atualiza uma receita existente
+ *     description: Atualiza os detalhes de uma receita e seus ingredientes.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: ID da receita a ser atualizada.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *                 example: "Receita Atualizada"
+ *               descricao:
+ *                 type: string
+ *                 example: "Descrição da receita atualizada."
+ *               ingredientesReceita:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *     responses:
+ *       '200':
+ *         description: Receita atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 nome:
+ *                   type: string
+ *                   example: "Receita Atualizada"
+ *                 descricao:
+ *                   type: string
+ *                   example: "Descrição da receita atualizada."
+ *                 ingredientesReceita:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                         idDaReceita:
+ *                           type: integer
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *       '500':
+ *         description: Erro ao atualizar receita
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erro ao atualizar receita"
+ */
+app.put('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { nome, descricao, ingredientes } = req.body;
+        yield prisma.ingredienteReceita.deleteMany({
+            where: { idDaReceita: parseInt(id) },
+        });
+        const receita = yield prisma.receita.update({
+            where: { id: parseInt(id) },
+            data: { nome, descricao }
+        });
+        const ingredientesReceita = ingredientes.map((ingrediente) => ({
+            idDaReceita: receita.id,
+            idDoIngrediente: ingrediente[0],
+            quantidade: ingrediente[1],
+        }));
+        yield prisma.ingredienteReceita.createMany({
+            data: ingredientesReceita
+        });
+        res.json(Object.assign(Object.assign({}, receita), { ingredientesReceita }));
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Erro ao atualizar receita' });
+    }
+}));
+/**
+* @swagger
+* /receitas/{id}:
+*   delete:
+*     tags: [Receitas]
+*     summary: Deleta uma receita existente
+*     description: Remove uma receita e seus ingredientes associados.
+*     parameters:
+*       - in: path
+*         name: id
+*         required: true
+*         schema:
+*           type: integer
+*           example: 1
+*         description: ID da receita a ser deletada.
+*     responses:
+*       '204':
+*         description: Receita deletada com sucesso
+*       '500':
+*         description: Erro ao deletar receita
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   example: "Erro ao deletar receita"
+*/
+app.delete('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        yield prisma.ingredienteReceita.deleteMany({
+            where: { idDaReceita: parseInt(id) },
+        });
+        yield prisma.receita.delete({
+            where: { id: parseInt(id) },
+        });
+        res.status(204).send();
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Erro ao deletar receita' });
     }
 }));
 /**
