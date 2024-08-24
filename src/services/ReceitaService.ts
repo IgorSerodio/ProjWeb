@@ -1,7 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, IngredienteReceita, Receita} from '@prisma/client';
 import IngredienteReceitaService from './IngredienteReceitaService';
 
 const prisma = new PrismaClient();
+
+interface ReceitaRes {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  idDoUsuario: number;
+  ingredientesReceita: IngredienteReceita[]
+}
 
 class ReceitaService {
   async create(data: { nome: string; descricao: string; idDoUsuario: number; ingredientes: { nomeDoIngrediente: string, quantidade: number }[] }) {
@@ -16,16 +24,31 @@ class ReceitaService {
   }
 
   async getByUsuarioId(idDoUsuario: number) {
-    const receitas = await prisma.receita.findMany({ where: { idDoUsuario } });
-    for (let receita of receitas) {
-      receita['ingredientesReceita'] = await IngredienteReceitaService.findByReceitaId(receita.id);
-    }
+    const receitas = await prisma.receita.findMany({ 
+      where: { idDoUsuario }, 
+      include: {
+        ingredientesReceita: {
+          include: { ingrediente: true }
+        }
+      } 
+    });
     return receitas;
   }
 
   async getByIngredientes(ingredientes: string) {
     const ingredientesList = ingredientes.split(',').map(nome => nome.trim());
-    return IngredienteReceitaService.findByIngredientes(ingredientesList);
+    return prisma.receita.findMany({
+      where: {
+        ingredientesReceita: {
+          every: { nomeDoIngrediente: { in: ingredientesList } }
+        },
+      },
+      include: {
+        ingredientesReceita: {
+          include: { ingrediente: true }
+        }
+      }
+    });
   }
 
   async update(id: number, data: { nome: string; descricao: string; ingredientes: { nomeDoIngrediente: string, quantidade: number }[] }) {

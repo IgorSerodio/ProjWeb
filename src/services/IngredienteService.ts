@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TipoDeMedida} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,8 @@ class IngredienteService {
     return prisma.ingrediente.findUnique({ where: { nome } });
   }
 
-  async create(data: { nome: string; tipoDeMedida: string }) {
+
+  async create(data: { nome: string, tipoDeMedida: TipoDeMedida}) {
     return prisma.ingrediente.create({ data });
   }
 
