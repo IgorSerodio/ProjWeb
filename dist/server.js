@@ -1,24 +1,17 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const client_1 = require("@prisma/client");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
+const UsuarioController_1 = __importDefault(require("./controllers/UsuarioController"));
+const ReceitaController_1 = __importDefault(require("./controllers/ReceitaController"));
+const IngredienteController_1 = __importDefault(require("./controllers/IngredienteController"));
+const AvaliacaoController_1 = __importDefault(require("./controllers/AvaliacaoController"));
 const app = (0, express_1.default)();
 const port = 3000;
-const prisma = new client_1.PrismaClient();
 app.use(express_1.default.json());
 const swaggerOptions = {
     swaggerDefinition: {
@@ -85,18 +78,7 @@ app.get('/swagger.json', (req, res) => {
  *       500:
  *         description: Erro ao criar usuário
  */
-app.post('/usuarios', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { email, hashSenha, apelido, adm } = req.body;
-        const usuario = yield prisma.usuario.create({
-            data: { email, hashSenha, apelido, adm },
-        });
-        res.status(201).json(usuario);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao criar usuário' });
-    }
-}));
+app.post('/usuarios', UsuarioController_1.default.create);
 /**
  * @swagger
  * /usuarios/email/{email}:
@@ -130,18 +112,7 @@ app.post('/usuarios', (req, res) => __awaiter(void 0, void 0, void 0, function* 
  *       500:
  *         description: Erro ao buscar usuário por email
  */
-app.get('/usuarios/email/:email', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { email } = req.params;
-        const usuario = yield prisma.usuario.findUnique({
-            where: { email: email },
-        });
-        res.json(usuario);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar usuário por email' });
-    }
-}));
+app.get('/usuarios/email/:email', UsuarioController_1.default.getByEmail);
 /**
  * @swagger
  * /usuarios/{id}:
@@ -175,18 +146,7 @@ app.get('/usuarios/email/:email', (req, res) => __awaiter(void 0, void 0, void 0
  *       500:
  *         description: Erro ao buscar usuário
  */
-app.get('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { id } = req.params;
-        const usuario = yield prisma.usuario.findUnique({
-            where: { id: parseInt(id) },
-        });
-        res.json(usuario);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar usuário' });
-    }
-}));
+app.get('/usuarios/:id', UsuarioController_1.default.getById);
 /**
  * @swagger
  * /usuarios/{id}:
@@ -231,41 +191,72 @@ app.get('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
  *       500:
  *         description: Erro ao atualizar usuário
  */
-app.put('/usuarios/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { id } = req.params;
-        const { hashSenha, apelido } = req.body;
-        const usuario = yield prisma.usuario.update({
-            where: { id: parseInt(id) },
-            data: { hashSenha, apelido },
-        });
-        res.json(usuario);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar usuário' });
-    }
-}));
-app.post('/receitas', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { nome, descricao, idDoUsuario, ingredientes } = req.body;
-        const receita = yield prisma.receita.create({
-            data: { nome, descricao, idDoUsuario }
-        });
-        console.log(receita, ingredientes);
-        const ingredientesReceita = ingredientes.map((ingrediente) => ({
-            idDaReceita: receita.id,
-            nomeDoIngrediente: ingrediente.nomeDoIngrediente,
-            quantidade: ingrediente.quantidade,
-        }));
-        yield prisma.ingredienteReceita.createMany({
-            data: ingredientesReceita
-        });
-        res.status(201).json(Object.assign(Object.assign({}, receita), { ingredientesReceita }));
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao criar receita' });
-    }
-}));
+app.put('/usuarios/:id', UsuarioController_1.default.update);
+/**
+ * @swagger
+ * tags:
+ *   name: Receitas
+ *   description: Gerencia receitas.
+ */
+/**
+ * @swagger
+ * /receitas:
+ *   post:
+ *     tags: [Receitas]
+ *     summary: Cria uma nova receita
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               descricao:
+ *                 type: string
+ *               idDoUsuario:
+ *                 type: integer
+ *               ingredientes:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *     responses:
+ *       201:
+ *         description: Receita criada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 nome:
+ *                   type: string
+ *                 descricao:
+ *                   type: string
+ *                 idDoUsuario:
+ *                   type: integer
+ *                 ingredientesReceita:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         idDaReceita:
+ *                           type: integer
+ *                         nomeDoIngrediente:
+ *                           type: string
+ *                         quantidade:
+ *                           type: number
+ *       500:
+ *         description: Erro ao criar receita
+ */
+app.post('/receitas', ReceitaController_1.default.create);
 /**
  * @swagger
  * /receitas/usuario/{idDoUsuario}:
@@ -310,21 +301,7 @@ app.post('/receitas', (req, res) => __awaiter(void 0, void 0, void 0, function* 
  *       500:
  *         description: Erro ao buscar receitas do usuário
  */
-app.get('/receitas/usuario/:idDoUsuario', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { idDoUsuario } = req.params;
-        const receitas = yield prisma.receita.findMany({
-            where: { idDoUsuario: parseInt(idDoUsuario) },
-            include: {
-                ingredientesReceita: true,
-            },
-        });
-        res.json(receitas);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar receitas do usuário' });
-    }
-}));
+app.get('/receitas/usuario/:idDoUsuario', ReceitaController_1.default.getByUsuarioId);
 /**
  * @swagger
  * /receitas/ingredientes:
@@ -369,32 +346,7 @@ app.get('/receitas/usuario/:idDoUsuario', (req, res) => __awaiter(void 0, void 0
  *       500:
  *         description: Erro ao buscar receitas por ingredientes
  */
-app.get('/receitas/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { ingredientes } = req.query;
-        const ingredientesList = ingredientes.split(',').map(nome => nome.trim());
-        const receitas = yield prisma.receita.findMany({
-            where: {
-                ingredientesReceita: {
-                    some: {
-                        nomeDoIngrediente: {
-                            in: ingredientesList,
-                        },
-                    },
-                },
-            },
-            include: {
-                ingredientesReceita: {
-                    include: { ingrediente: true }
-                }
-            }
-        });
-        res.json(receitas);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar receitas por ingredientes' });
-    }
-}));
+app.get('/receitas/ingredientes', ReceitaController_1.default.getByIngredientes);
 /**
  * @swagger
  * /receitas/{id}:
@@ -471,34 +423,7 @@ app.get('/receitas/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0
  *                   type: string
  *                   example: "Erro ao atualizar receita"
  */
-app.put('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { id } = req.params;
-        const { nome, descricao, idDoUsuario, ingredientes } = req.body;
-        yield prisma.ingredienteReceita.deleteMany({
-            where: { idDaReceita: parseInt(id) },
-        });
-        const receita = yield prisma.receita.update({
-            where: { id: parseInt(id) },
-            data: { nome, descricao }
-        });
-        const ingredientesReceita = ingredientes.map((ingrediente) => ({
-            idDaReceita: receita.id,
-            nomeDoIngrediente: ingrediente.nomeDoIngrediente,
-            quantidade: ingrediente.quantidade,
-        }));
-        yield prisma.ingredienteReceita.deleteMany({
-            where: { idDaReceita: parseInt(id) },
-        });
-        yield prisma.ingredienteReceita.createMany({
-            data: ingredientesReceita
-        });
-        res.json(Object.assign(Object.assign({}, receita), { ingredientesReceita }));
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar receita' });
-    }
-}));
+app.put('/receitas/:id', ReceitaController_1.default.update);
 /**
 * @swagger
 * /receitas/{id}:
@@ -528,21 +453,7 @@ app.put('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
 *                   type: string
 *                   example: "Erro ao deletar receita"
 */
-app.delete('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { id } = req.params;
-        yield prisma.ingredienteReceita.deleteMany({
-            where: { idDaReceita: parseInt(id) },
-        });
-        yield prisma.receita.delete({
-            where: { id: parseInt(id) },
-        });
-        res.status(204).send();
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao deletar receita' });
-    }
-}));
+app.delete('/receitas/:id', ReceitaController_1.default.delete);
 /**
  * @swagger
  * tags:
@@ -573,15 +484,7 @@ app.delete('/receitas/:id', (req, res) => __awaiter(void 0, void 0, void 0, func
  *       500:
  *         description: Erro ao buscar ingredientes
  */
-app.get('/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const ingredientes = yield prisma.ingrediente.findMany();
-        res.json(ingredientes);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar ingredientes' });
-    }
-}));
+app.get('/ingredientes', IngredienteController_1.default.getAll);
 /**
  * @swagger
  * /ingredientes/nome/{nome}:
@@ -610,18 +513,7 @@ app.get('/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, functio
  *       500:
  *         description: Erro ao buscar ingrediente pelo nome
  */
-app.get('/ingredientes/nome/:nome', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { nome } = req.params;
-        const ingrediente = yield prisma.ingrediente.findUnique({
-            where: { nome: nome },
-        });
-        res.json(ingrediente);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar ingrediente pelo nome' });
-    }
-}));
+app.get('/ingredientes/:nome', IngredienteController_1.default.getByNome);
 /**
  * @swagger
  * /ingredientes:
@@ -656,18 +548,7 @@ app.get('/ingredientes/nome/:nome', (req, res) => __awaiter(void 0, void 0, void
  *       500:
  *         description: Erro ao criar ingrediente
  */
-app.post('/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { nome, tipoDeMedida } = req.body;
-        const ingrediente = yield prisma.ingrediente.create({
-            data: { nome, tipoDeMedida },
-        });
-        res.status(201).json(ingrediente);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao criar ingrediente' });
-    }
-}));
+app.post('/ingredientes', IngredienteController_1.default.create);
 /**
  * @swagger
  * /ingredientes/{nome}:
@@ -694,69 +575,13 @@ app.post('/ingredientes', (req, res) => __awaiter(void 0, void 0, void 0, functi
  *                   type: string
  *                   example: "Erro ao deletar ingrediente"
  */
-app.delete('/ingredientes/:nome', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { nome } = req.params;
-        yield prisma.ingrediente.delete({
-            where: { nome: nome },
-        });
-        res.status(204).send();
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao deletar ingrediente' });
-    }
-}));
+app.delete('/ingredientes/:nome', IngredienteController_1.default.delete);
 /**
  * @swagger
  * tags:
  *   name: Avaliações
  *   description: Gerencia avaliações.
  */
-/**
- * @swagger
- * /avaliacoes/{idDaReceita}:
- *   get:
- *     tags: [Avaliações]
- *     summary: Busca avaliações por ID da receita
- *     parameters:
- *       - name: idDaReceita
- *         in: path
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Lista de avaliações
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   idDoUsuario:
- *                     type: integer
- *                   idDaReceita:
- *                     type: integer
- *                   nota:
- *                     type: number
- *                   comentario:
- *                     type: string
- *       500:
- *         description: Erro ao buscar avaliações
- */
-app.get('/avaliacoes/:idDaReceita', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { idDaReceita } = req.params;
-        const avaliacoes = yield prisma.avaliacao.findMany({
-            where: { idDaReceita: parseInt(idDaReceita) },
-        });
-        res.json(avaliacoes);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar avaliações' });
-    }
-}));
 /**
  * @swagger
  * /avaliacoes:
@@ -797,18 +622,41 @@ app.get('/avaliacoes/:idDaReceita', (req, res) => __awaiter(void 0, void 0, void
  *       500:
  *         description: Erro ao criar avaliação
  */
-app.post('/avaliacoes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { idDoUsuario, idDaReceita, nota, comentario } = req.body;
-        const avaliacao = yield prisma.avaliacao.create({
-            data: { idDoUsuario, idDaReceita, nota, comentario },
-        });
-        res.status(201).json(avaliacao);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao criar avaliação' });
-    }
-}));
+app.post('/avaliacoes', AvaliacaoController_1.default.create);
+/**
+ * @swagger
+ * /avaliacoes/{idDaReceita}:
+ *   get:
+ *     tags: [Avaliações]
+ *     summary: Busca avaliações por ID da receita
+ *     parameters:
+ *       - name: idDaReceita
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de avaliações
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   idDoUsuario:
+ *                     type: integer
+ *                   idDaReceita:
+ *                     type: integer
+ *                   nota:
+ *                     type: number
+ *                   comentario:
+ *                     type: string
+ *       500:
+ *         description: Erro ao buscar avaliações
+ */
+app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController_1.default.getByReceitaId);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
@@ -856,20 +704,7 @@ app.post('/avaliacoes', (req, res) => __awaiter(void 0, void 0, void 0, function
  *       500:
  *         description: Erro ao atualizar avaliação
  */
-app.put('/avaliacoes/:idDoUsuario/:idDaReceita', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { idDoUsuario, idDaReceita } = req.params;
-        const { nota, comentario } = req.body;
-        const avaliacao = yield prisma.avaliacao.update({
-            where: { idDoUsuario_idDaReceita: { idDoUsuario: parseInt(idDoUsuario), idDaReceita: parseInt(idDaReceita) } },
-            data: { nota, comentario },
-        });
-        res.json(avaliacao);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar avaliação' });
-    }
-}));
+app.put('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController_1.default.update);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
@@ -893,18 +728,7 @@ app.put('/avaliacoes/:idDoUsuario/:idDaReceita', (req, res) => __awaiter(void 0,
  *       500:
  *         description: Erro ao deletar avaliação
  */
-app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { idDoUsuario, idDaReceita } = req.params;
-        yield prisma.avaliacao.delete({
-            where: { idDoUsuario_idDaReceita: { idDoUsuario: parseInt(idDoUsuario), idDaReceita: parseInt(idDaReceita) } },
-        });
-        res.status(204).send();
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Erro ao deletar avaliação' });
-    }
-}));
+app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController_1.default.delete);
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
 });
