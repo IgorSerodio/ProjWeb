@@ -79,6 +79,7 @@ app.get('/swagger.json', (req, res) => {
  *         description: Erro ao criar usuário
  */
 app.post('/usuarios', UsuarioController_1.default.create);
+app.post('/usuarios/login', UsuarioController_1.default.login);
 /**
  * @swagger
  * /usuarios/email/{email}:

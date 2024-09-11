@@ -51,9 +51,7 @@ class ReceitaService {
                     },
                 },
                 include: {
-                    ingredientesReceita: {
-                        include: { ingrediente: true }
-                    }
+                    ingredientesReceita: true
                 }
             });
         });

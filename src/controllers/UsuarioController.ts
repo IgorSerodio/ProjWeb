@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import UsuarioService from '../services/UsuarioService';
 
-const SECRET_KEY = process.env.SECRET_KEY;
+const SECRET_KEY = process.env.SECRET_KEY || '';
 
 class UsuarioController {
 
@@ -24,7 +24,7 @@ class UsuarioController {
 
       const token = jwt.sign({ id: usuario.id, email: usuario.email }, SECRET_KEY, { expiresIn: '1h' });
       return res.json({ token });
-    } catch (err) {
+    } catch (error) {
       return res.status(500).json({ error: 'Erro ao realizar login' });
     }
   }
