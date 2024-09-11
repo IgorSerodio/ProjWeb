@@ -11,7 +11,6 @@ class IngredienteService {
     return prisma.ingrediente.findUnique({ where: { nome } });
   }
 
-
   async create(data: { nome: string, tipoDeMedida: TipoDeMedida}) {
     return prisma.ingrediente.create({ data });
   }

@@ -39,14 +39,13 @@ class IngredienteController {
     }
     create(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { nome, tipoDeMedida } = req.body;
-                const ingrediente = yield IngredienteService_1.default.create({ nome, tipoDeMedida });
-                res.status(201).json(ingrediente);
-            }
-            catch (error) {
-                res.status(500).json({ error: 'Erro ao criar ingrediente' });
-            }
+            //try {
+            const { nome, tipoDeMedida } = req.body;
+            const ingrediente = yield IngredienteService_1.default.create({ nome, tipoDeMedida });
+            res.status(201).json(ingrediente);
+            //} catch (error) {
+            //res.status(500).json({ error: 'Erro ao criar ingrediente' });
+            //}
         });
     }
     delete(req, res) {

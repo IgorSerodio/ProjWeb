@@ -1,10 +1,38 @@
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import UsuarioService from '../services/UsuarioService';
 
+const SECRET_KEY = process.env.SECRET_KEY;
+
 class UsuarioController {
+
+  async login(req: Request, res: Response) {
+    const { email, senha } = req.body;
+
+    try {
+      const usuario = await UsuarioService.getByEmail(email);
+
+      if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      const senhaCorreta = await bcrypt.compare(senha, usuario.hashSenha);
+      if (!senhaCorreta) {
+        return res.status(401).json({ error: 'Senha inválida' });
+      }
+
+      const token = jwt.sign({ id: usuario.id, email: usuario.email }, SECRET_KEY, { expiresIn: '1h' });
+      return res.json({ token });
+    } catch (err) {
+      return res.status(500).json({ error: 'Erro ao realizar login' });
+    }
+  }
+  
   async create(req: Request, res: Response) {
     try {
-      const { email, hashSenha, apelido, adm } = req.body;
+      const { email, senha, apelido, adm } = req.body;
+      const hashSenha = await bcrypt.hash(senha, 10);
       const usuario = await UsuarioService.create({ email, hashSenha, apelido, adm });
       res.status(201).json(usuario);
     } catch (error) {
