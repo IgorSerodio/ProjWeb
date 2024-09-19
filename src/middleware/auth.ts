@@ -1,24 +1,33 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import config from '../config';
 
-const SECRET_KEY = process.env.SECRET_KEY || '';
+const jwtSecretKey = config.jwtSecretKey;
 
-interface AuthenticatedRequest extends Request {
-  usuario?: string | JwtPayload;
+export interface AuthenticatedRequest extends Request {
+  usuario?: JwtPayload;
 }
 
-export function autenticarToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const token = req.headers['authorization'];
+export function autenticarToken(necessitaAdm: boolean = false) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const token = req.headers['authorization']?.split(' ')[1];
 
-  if (!token) {
-    return res.status(401).json({ error: 'Token não fornecido' });
-  }
+    if (!token) {
+      return res.status(401).json({ error: 'Token não fornecido' });
+    }
 
-  try {
-    const tokenValido = jwt.verify(token, SECRET_KEY);
-    req.usuario = tokenValido; 
-    next();
-  } catch (err) {
-    return res.status(403).json({ error: 'Token inválido ou expirado' });
-  }
+    try {
+      const tokenValido = jwt.verify(token, jwtSecretKey) as JwtPayload;
+      req.usuario = tokenValido; 
+
+      if (necessitaAdm && tokenValido.adm !== true) {
+        return res.status(403).json({ error: 'Acesso negado. Apenas administradores podem acessar.' });
+      }
+
+      next();
+    } catch (err) {
+      console.log(err);
+      return res.status(403).json({ error: 'Token inválido ou expirado' });
+    }
+  };
 }

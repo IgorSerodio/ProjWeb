@@ -11,42 +11,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-class AvaliacaoService {
+class UsuarioService {
     create(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.create({ data });
+            return prisma.usuario.create({ data });
         });
     }
-    findByReceitaId(idDaReceita) {
+    getByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.findMany({
-                where: { idDaReceita },
-                include: { usuario: true }
-            });
+            return prisma.usuario.findUnique({ where: { email } });
         });
     }
-    findByReceitaIdAndUsuarioId(idDaReceita, idDoUsuario) {
+    getById(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.findMany({
-                where: { idDaReceita, idDoUsuario },
-                include: { usuario: true }
-            });
+            return prisma.usuario.findUnique({ where: { id } });
         });
     }
-    update(idDoUsuario, idDaReceita, data) {
+    update(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.updateMany({
-                where: { idDoUsuario, idDaReceita },
-                data
-            });
-        });
-    }
-    delete(idDoUsuario, idDaReceita) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.deleteMany({
-                where: { idDoUsuario, idDaReceita }
-            });
+            return prisma.usuario.update({ where: { id }, data });
         });
     }
 }
-exports.default = new AvaliacaoService();
+exports.default = new UsuarioService();

@@ -20,4 +20,6 @@ class IngredienteService {
   }
 }
 
+export const tipoDeMedidaConst = TipoDeMedida;
+
 export default new IngredienteService();

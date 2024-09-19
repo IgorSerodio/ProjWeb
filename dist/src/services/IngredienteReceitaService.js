@@ -9,30 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tipoDeMedidaConst = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-class IngredienteService {
-    getAll() {
+class IngredienteReceitaService {
+    createMany(ingredientes) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.ingrediente.findMany();
+            return prisma.ingredienteReceita.createMany({ data: ingredientes });
         });
     }
-    getByNome(nome) {
+    deleteByReceitaId(idDaReceita) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.ingrediente.findUnique({ where: { nome } });
-        });
-    }
-    create(data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return prisma.ingrediente.create({ data });
-        });
-    }
-    delete(nome) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield prisma.ingrediente.delete({ where: { nome } });
+            return prisma.ingredienteReceita.deleteMany({ where: { idDaReceita } });
         });
     }
 }
-exports.tipoDeMedidaConst = client_1.TipoDeMedida;
-exports.default = new IngredienteService();
+exports.default = new IngredienteReceitaService();

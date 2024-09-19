@@ -14,6 +14,13 @@ class AvaliacaoService {
     });
   }
 
+  async findByReceitaIdAndUsuarioId(idDaReceita: number, idDoUsuario: number) {
+    return prisma.avaliacao.findMany({
+      where: { idDaReceita, idDoUsuario },
+      include: { usuario: true }
+    });
+  }
+
   async update(idDoUsuario: number, idDaReceita: number, data: { nota: number; comentario?: string }) {
     return prisma.avaliacao.updateMany({
       where: { idDoUsuario, idDaReceita },

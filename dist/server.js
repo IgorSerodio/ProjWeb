@@ -6,12 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
+const auth_1 = require("./middleware/auth");
 const UsuarioController_1 = __importDefault(require("./controllers/UsuarioController"));
 const ReceitaController_1 = __importDefault(require("./controllers/ReceitaController"));
 const IngredienteController_1 = __importDefault(require("./controllers/IngredienteController"));
 const AvaliacaoController_1 = __importDefault(require("./controllers/AvaliacaoController"));
+const config_1 = __importDefault(require("./config"));
 const app = (0, express_1.default)();
-const port = 3000;
+const port = config_1.default.serverPort;
 app.use(express_1.default.json());
 const swaggerOptions = {
     swaggerDefinition: {
@@ -21,6 +23,20 @@ const swaggerOptions = {
             version: '1.0.0',
             description: 'API para gerenciar receitas, ingredientes e avaliações',
         },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
+            },
+        },
+        security: [
+            {
+                bearerAuth: [],
+            },
+        ],
     },
     apis: ['./src/**/*.ts'],
 };
@@ -51,7 +67,7 @@ app.get('/swagger.json', (req, res) => {
  *             properties:
  *               email:
  *                 type: string
- *               hashSenha:
+ *               senha:
  *                 type: string
  *               apelido:
  *                 type: string
@@ -79,6 +95,36 @@ app.get('/swagger.json', (req, res) => {
  *         description: Erro ao criar usuário
  */
 app.post('/usuarios', UsuarioController_1.default.create);
+/**
+ * @swagger
+ * /usuarios/login:
+ *   post:
+ *     tags: [Usuarios]
+ *     summary: Realiza login do usuário
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login realizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       500:
+ *         description: Erro ao realizar login
+ */
 app.post('/usuarios/login', UsuarioController_1.default.login);
 /**
  * @swagger
@@ -154,6 +200,8 @@ app.get('/usuarios/:id', UsuarioController_1.default.getById);
  *   put:
  *     tags: [Usuarios]
  *     summary: Atualiza um usuário
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
@@ -167,7 +215,7 @@ app.get('/usuarios/:id', UsuarioController_1.default.getById);
  *           schema:
  *             type: object
  *             properties:
- *               hashSenha:
+ *               senha:
  *                 type: string
  *               apelido:
  *                 type: string
@@ -192,7 +240,7 @@ app.get('/usuarios/:id', UsuarioController_1.default.getById);
  *       500:
  *         description: Erro ao atualizar usuário
  */
-app.put('/usuarios/:id', UsuarioController_1.default.update);
+app.put('/usuarios/:id', (0, auth_1.autenticarToken)(), UsuarioController_1.default.update);
 /**
  * @swagger
  * tags:
@@ -205,6 +253,16 @@ app.put('/usuarios/:id', UsuarioController_1.default.update);
  *   post:
  *     tags: [Receitas]
  *     summary: Cria uma nova receita
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -257,7 +315,7 @@ app.put('/usuarios/:id', UsuarioController_1.default.update);
  *       500:
  *         description: Erro ao criar receita
  */
-app.post('/receitas', ReceitaController_1.default.create);
+app.post('/receitas', (0, auth_1.autenticarToken)(), ReceitaController_1.default.create);
 /**
  * @swagger
  * /receitas/usuario/{idDoUsuario}:
@@ -354,6 +412,8 @@ app.get('/receitas/ingredientes', ReceitaController_1.default.getByIngredientes)
  *   put:
  *     tags: [Receitas]
  *     summary: Atualiza uma receita existente
+ *     security:
+ *       - bearerAuth: []
  *     description: Atualiza os detalhes de uma receita e seus ingredientes.
  *     parameters:
  *       - in: path
@@ -363,6 +423,13 @@ app.get('/receitas/ingredientes', ReceitaController_1.default.getByIngredientes)
  *           type: integer
  *           example: 1
  *         description: ID da receita a ser atualizada.
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -424,13 +491,15 @@ app.get('/receitas/ingredientes', ReceitaController_1.default.getByIngredientes)
  *                   type: string
  *                   example: "Erro ao atualizar receita"
  */
-app.put('/receitas/:id', ReceitaController_1.default.update);
+app.put('/receitas/:id', (0, auth_1.autenticarToken)(), ReceitaController_1.default.update);
 /**
 * @swagger
 * /receitas/{id}:
 *   delete:
 *     tags: [Receitas]
 *     summary: Deleta uma receita existente
+*     security:
+*       - bearerAuth: []
 *     description: Remove uma receita e seus ingredientes associados.
 *     parameters:
 *       - in: path
@@ -440,6 +509,13 @@ app.put('/receitas/:id', ReceitaController_1.default.update);
 *           type: integer
 *           example: 1
 *         description: ID da receita a ser deletada.
+*       - name: authorization
+*         in: header
+*         required: true
+*         description: "Token JWT de autenticação"
+*         schema:
+*           type: string
+*           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 *     responses:
 *       '204':
 *         description: Receita deletada com sucesso
@@ -454,7 +530,7 @@ app.put('/receitas/:id', ReceitaController_1.default.update);
 *                   type: string
 *                   example: "Erro ao deletar receita"
 */
-app.delete('/receitas/:id', ReceitaController_1.default.delete);
+app.delete('/receitas/:id', (0, auth_1.autenticarToken)(), ReceitaController_1.default.delete);
 /**
  * @swagger
  * tags:
@@ -521,6 +597,16 @@ app.get('/ingredientes/:nome', IngredienteController_1.default.getByNome);
  *   post:
  *     tags: [Ingredientes]
  *     summary: Cria um novo ingrediente
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -549,19 +635,28 @@ app.get('/ingredientes/:nome', IngredienteController_1.default.getByNome);
  *       500:
  *         description: Erro ao criar ingrediente
  */
-app.post('/ingredientes', IngredienteController_1.default.create);
+app.post('/ingredientes', (0, auth_1.autenticarToken)(true), IngredienteController_1.default.create);
 /**
  * @swagger
  * /ingredientes/{nome}:
  *   delete:
  *     tags: [Ingredientes]
  *     summary: Deleta um ingrediente pelo nome
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: nome
  *         in: path
  *         required: true
  *         schema:
  *           type: string
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     responses:
  *       204:
  *         description: Ingrediente deletado com sucesso
@@ -576,7 +671,7 @@ app.post('/ingredientes', IngredienteController_1.default.create);
  *                   type: string
  *                   example: "Erro ao deletar ingrediente"
  */
-app.delete('/ingredientes/:nome', IngredienteController_1.default.delete);
+app.delete('/ingredientes/:nome', (0, auth_1.autenticarToken)(true), IngredienteController_1.default.delete);
 /**
  * @swagger
  * tags:
@@ -589,6 +684,16 @@ app.delete('/ingredientes/:nome', IngredienteController_1.default.delete);
  *   post:
  *     tags: [Avaliações]
  *     summary: Cria uma nova avaliação
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -623,7 +728,7 @@ app.delete('/ingredientes/:nome', IngredienteController_1.default.delete);
  *       500:
  *         description: Erro ao criar avaliação
  */
-app.post('/avaliacoes', AvaliacaoController_1.default.create);
+app.post('/avaliacoes', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.create);
 /**
  * @swagger
  * /avaliacoes/{idDaReceita}:
@@ -664,6 +769,8 @@ app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController_1.default.getBy
  *   put:
  *     tags: [Avaliações]
  *     summary: Atualiza uma avaliação
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: idDoUsuario
  *         in: path
@@ -675,6 +782,13 @@ app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController_1.default.getBy
  *         required: true
  *         schema:
  *           type: integer
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -705,13 +819,15 @@ app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController_1.default.getBy
  *       500:
  *         description: Erro ao atualizar avaliação
  */
-app.put('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController_1.default.update);
+app.put('/avaliacoes/:idDoUsuario/:idDaReceita', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.update);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
  *   delete:
  *     tags: [Avaliações]
  *     summary: Deleta uma avaliação
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: idDoUsuario
  *         in: path
@@ -723,13 +839,20 @@ app.put('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController_1.default.u
  *         required: true
  *         schema:
  *           type: integer
+ *       - name: authorization
+ *         in: header
+ *         required: true
+ *         description: "Token JWT de autenticação"
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     responses:
  *       204:
  *         description: Avaliação deletada com sucesso
  *       500:
  *         description: Erro ao deletar avaliação
  */
-app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController_1.default.delete);
+app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.delete);
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
 });

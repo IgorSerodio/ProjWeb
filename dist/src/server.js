@@ -1,59 +1,57 @@
-import express, { Request, Response } from 'express';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
-import { autenticarToken } from './middleware/auth';
-import UsuarioController from './controllers/UsuarioController';
-import ReceitaController from './controllers/ReceitaController';
-import IngredienteController from './controllers/IngredienteController';
-import AvaliacaoController from './controllers/AvaliacaoController';
-import config from './config';
-
-const app = express();
-const port = config.serverPort;
-
-app.use(express.json());
-
-const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Na Minha Geladeira',
-      version: '1.0.0',
-      description: 'API para gerenciar receitas, ingredientes e avaliações',
-    },
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
-  },
-  apis: ['./src/**/*.ts'],
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
+const auth_1 = require("./middleware/auth");
+const UsuarioController_1 = __importDefault(require("./controllers/UsuarioController"));
+const ReceitaController_1 = __importDefault(require("./controllers/ReceitaController"));
+const IngredienteController_1 = __importDefault(require("./controllers/IngredienteController"));
+const AvaliacaoController_1 = __importDefault(require("./controllers/AvaliacaoController"));
+const config_1 = __importDefault(require("../config"));
+const app = (0, express_1.default)();
+const port = config_1.default.serverPort;
+app.use(express_1.default.json());
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Na Minha Geladeira',
+            version: '1.0.0',
+            description: 'API para gerenciar receitas, ingredientes e avaliações',
+        },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
+            },
+        },
+        security: [
+            {
+                bearerAuth: [],
+            },
+        ],
+    },
+    apis: ['./src/**/*.ts'],
+};
+const swaggerDocs = (0, swagger_jsdoc_1.default)(swaggerOptions);
+app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocs));
 // Endpoint adicional para servir o JSON
-app.get('/swagger.json', (req: Request, res: Response) => {
-  res.json(swaggerDocs);
+app.get('/swagger.json', (req, res) => {
+    res.json(swaggerDocs);
 });
-
 /**
  * @swagger
  * tags:
  *   name: Usuarios
  *   description: Gerencia usuários.
  */
-
 /**
  * @swagger
  * /usuarios:
@@ -96,9 +94,7 @@ app.get('/swagger.json', (req: Request, res: Response) => {
  *       500:
  *         description: Erro ao criar usuário
  */
-
-app.post('/usuarios', UsuarioController.create);
-
+app.post('/usuarios', UsuarioController_1.default.create);
 /**
  * @swagger
  * /usuarios/login:
@@ -125,11 +121,11 @@ app.post('/usuarios', UsuarioController.create);
  *               type: object
  *               properties:
  *                 token:
- *                   type: string          
+ *                   type: string
  *       500:
  *         description: Erro ao realizar login
  */
-app.post('/usuarios/login', UsuarioController.login);
+app.post('/usuarios/login', UsuarioController_1.default.login);
 /**
  * @swagger
  * /usuarios/email/{email}:
@@ -163,7 +159,7 @@ app.post('/usuarios/login', UsuarioController.login);
  *       500:
  *         description: Erro ao buscar usuário por email
  */
-app.get('/usuarios/email/:email', UsuarioController.getByEmail);
+app.get('/usuarios/email/:email', UsuarioController_1.default.getByEmail);
 /**
  * @swagger
  * /usuarios/{id}:
@@ -197,7 +193,7 @@ app.get('/usuarios/email/:email', UsuarioController.getByEmail);
  *       500:
  *         description: Erro ao buscar usuário
  */
-app.get('/usuarios/:id', UsuarioController.getById);
+app.get('/usuarios/:id', UsuarioController_1.default.getById);
 /**
  * @swagger
  * /usuarios/{id}:
@@ -244,15 +240,13 @@ app.get('/usuarios/:id', UsuarioController.getById);
  *       500:
  *         description: Erro ao atualizar usuário
  */
-app.put('/usuarios/:id', autenticarToken(), UsuarioController.update);
-
+app.put('/usuarios/:id', (0, auth_1.autenticarToken)(), UsuarioController_1.default.update);
 /**
  * @swagger
  * tags:
  *   name: Receitas
  *   description: Gerencia receitas.
  */
-
 /**
  * @swagger
  * /receitas:
@@ -321,7 +315,7 @@ app.put('/usuarios/:id', autenticarToken(), UsuarioController.update);
  *       500:
  *         description: Erro ao criar receita
  */
-app.post('/receitas', autenticarToken(), ReceitaController.create);
+app.post('/receitas', (0, auth_1.autenticarToken)(), ReceitaController_1.default.create);
 /**
  * @swagger
  * /receitas/usuario/{idDoUsuario}:
@@ -366,7 +360,7 @@ app.post('/receitas', autenticarToken(), ReceitaController.create);
  *       500:
  *         description: Erro ao buscar receitas do usuário
  */
-app.get('/receitas/usuario/:idDoUsuario', ReceitaController.getByUsuarioId);
+app.get('/receitas/usuario/:idDoUsuario', ReceitaController_1.default.getByUsuarioId);
 /**
  * @swagger
  * /receitas/ingredientes:
@@ -411,7 +405,7 @@ app.get('/receitas/usuario/:idDoUsuario', ReceitaController.getByUsuarioId);
  *       500:
  *         description: Erro ao buscar receitas por ingredientes
  */
-app.get('/receitas/ingredientes', ReceitaController.getByIngredientes);
+app.get('/receitas/ingredientes', ReceitaController_1.default.getByIngredientes);
 /**
  * @swagger
  * /receitas/{id}:
@@ -497,7 +491,7 @@ app.get('/receitas/ingredientes', ReceitaController.getByIngredientes);
  *                   type: string
  *                   example: "Erro ao atualizar receita"
  */
-app.put('/receitas/:id', autenticarToken(),  ReceitaController.update);
+app.put('/receitas/:id', (0, auth_1.autenticarToken)(), ReceitaController_1.default.update);
 /**
 * @swagger
 * /receitas/{id}:
@@ -536,15 +530,13 @@ app.put('/receitas/:id', autenticarToken(),  ReceitaController.update);
 *                   type: string
 *                   example: "Erro ao deletar receita"
 */
-app.delete('/receitas/:id', autenticarToken(),  ReceitaController.delete);
-
+app.delete('/receitas/:id', (0, auth_1.autenticarToken)(), ReceitaController_1.default.delete);
 /**
  * @swagger
  * tags:
  *   name: Ingredientes
  *   description: Gerencia ingredientes.
  */
-
 /**
  * @swagger
  * /ingredientes:
@@ -569,7 +561,7 @@ app.delete('/receitas/:id', autenticarToken(),  ReceitaController.delete);
  *       500:
  *         description: Erro ao buscar ingredientes
  */
-app.get('/ingredientes', IngredienteController.getAll);
+app.get('/ingredientes', IngredienteController_1.default.getAll);
 /**
  * @swagger
  * /ingredientes/nome/{nome}:
@@ -598,7 +590,7 @@ app.get('/ingredientes', IngredienteController.getAll);
  *       500:
  *         description: Erro ao buscar ingrediente pelo nome
  */
-app.get('/ingredientes/:nome', IngredienteController.getByNome);
+app.get('/ingredientes/:nome', IngredienteController_1.default.getByNome);
 /**
  * @swagger
  * /ingredientes:
@@ -607,7 +599,7 @@ app.get('/ingredientes/:nome', IngredienteController.getByNome);
  *     summary: Cria um novo ingrediente
  *     security:
  *       - bearerAuth: []
- *     parameters: 
+ *     parameters:
  *       - name: authorization
  *         in: header
  *         required: true
@@ -643,7 +635,7 @@ app.get('/ingredientes/:nome', IngredienteController.getByNome);
  *       500:
  *         description: Erro ao criar ingrediente
  */
-app.post('/ingredientes', autenticarToken(true), IngredienteController.create);
+app.post('/ingredientes', (0, auth_1.autenticarToken)(true), IngredienteController_1.default.create);
 /**
  * @swagger
  * /ingredientes/{nome}:
@@ -679,15 +671,13 @@ app.post('/ingredientes', autenticarToken(true), IngredienteController.create);
  *                   type: string
  *                   example: "Erro ao deletar ingrediente"
  */
-app.delete('/ingredientes/:nome', autenticarToken(true), IngredienteController.delete);
-
+app.delete('/ingredientes/:nome', (0, auth_1.autenticarToken)(true), IngredienteController_1.default.delete);
 /**
  * @swagger
  * tags:
  *   name: Avaliações
  *   description: Gerencia avaliações.
  */
-
 /**
  * @swagger
  * /avaliacoes:
@@ -738,7 +728,7 @@ app.delete('/ingredientes/:nome', autenticarToken(true), IngredienteController.d
  *       500:
  *         description: Erro ao criar avaliação
  */
-app.post('/avaliacoes', autenticarToken(),  AvaliacaoController.create);
+app.post('/avaliacoes', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.create);
 /**
  * @swagger
  * /avaliacoes/{idDaReceita}:
@@ -772,7 +762,7 @@ app.post('/avaliacoes', autenticarToken(),  AvaliacaoController.create);
  *       500:
  *         description: Erro ao buscar avaliações
  */
-app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController.getByReceitaId);
+app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController_1.default.getByReceitaId);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
@@ -829,7 +819,7 @@ app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController.getByReceitaId)
  *       500:
  *         description: Erro ao atualizar avaliação
  */
-app.put('/avaliacoes/:idDoUsuario/:idDaReceita', autenticarToken(),  AvaliacaoController.update);
+app.put('/avaliacoes/:idDoUsuario/:idDaReceita', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.update);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
@@ -862,9 +852,7 @@ app.put('/avaliacoes/:idDoUsuario/:idDaReceita', autenticarToken(),  AvaliacaoCo
  *       500:
  *         description: Erro ao deletar avaliação
  */
-app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', autenticarToken(),  AvaliacaoController.delete);
-
+app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.delete);
 app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+    console.log(`Servidor rodando em http://localhost:${port}`);
 });
-

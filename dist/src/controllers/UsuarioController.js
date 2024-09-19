@@ -15,8 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const UsuarioService_1 = __importDefault(require("../services/UsuarioService"));
-const config_1 = __importDefault(require("../config"));
-const jwtSecretKey = config_1.default.jwtSecretKey || '';
+const config_1 = __importDefault(require(".../config"));
 class UsuarioController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -33,7 +32,7 @@ class UsuarioController {
                 if (!senhaCorreta) {
                     return res.status(401).json({ error: 'Senha inválida' });
                 }
-                const token = jsonwebtoken_1.default.sign({ id: usuario.id, adm: usuario.adm }, jwtSecretKey, { expiresIn: '1h' });
+                const token = jsonwebtoken_1.default.sign({ id: usuario.id, adm: usuario.adm }, config_1.default.jwtSecretKey, { expiresIn: '1h' });
                 return res.status(200).json({ token });
             }
             catch (error) {
