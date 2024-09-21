@@ -4,4 +4,4 @@ Na Minha Geladeira é uma aplicação web que fornece receitas baseadas nos ingr
 
 Será possível postar receitas (precisa de login) utilizando um formulário, além de comentar e avaliar receitas existentes. 
 
-Link da documentação: https://app.swaggerhub.com/apis/IGORSERODIOQUEIROZ/na-minha_geladeira/1.0.1
+Link da documentação: https://app.swaggerhub.com/apis/IGORBARCELAR_1/na-minha_geladeira/1.0.2
