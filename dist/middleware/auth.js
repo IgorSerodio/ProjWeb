@@ -6,12 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.autenticarToken = autenticarToken;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config"));
-const jwtSecretKey = config_1.default.jwtSecretKey || '';
+const jwtSecretKey = config_1.default.jwtSecretKey;
 function autenticarToken(necessitaAdm = false) {
     return (req, res, next) => {
         var _a;
         const token = (_a = req.headers['authorization']) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
-        console.log(token);
         if (!token) {
             return res.status(401).json({ error: 'Token não fornecido' });
         }

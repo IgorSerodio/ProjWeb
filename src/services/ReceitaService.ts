@@ -1,5 +1,6 @@
 import { PrismaClient, IngredienteReceita, Receita} from '@prisma/client';
 import IngredienteReceitaService from './IngredienteReceitaService';
+import AvaliacaoService from './AvaliacaoService';
 
 const prisma = new PrismaClient();
 
@@ -81,10 +82,11 @@ class ReceitaService {
         ingredientesReceita: true
       }
     });
-    return {receita};
+    return receita;
   }
 
   async delete(id: number) {
+    await AvaliacaoService.deleteByReceitaId(id);
     await IngredienteReceitaService.deleteByReceitaId(id);
     await prisma.receita.delete({ where: { id } });
   }

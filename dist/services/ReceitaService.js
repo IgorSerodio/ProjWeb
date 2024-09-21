@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const IngredienteReceitaService_1 = __importDefault(require("./IngredienteReceitaService"));
+const AvaliacaoService_1 = __importDefault(require("./AvaliacaoService"));
 const prisma = new client_1.PrismaClient();
 class ReceitaService {
     create(data) {
@@ -90,11 +91,12 @@ class ReceitaService {
                     ingredientesReceita: true
                 }
             });
-            return { receita };
+            return receita;
         });
     }
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield AvaliacaoService_1.default.deleteByReceitaId(id);
             yield IngredienteReceitaService_1.default.deleteByReceitaId(id);
             yield prisma.receita.delete({ where: { id } });
         });

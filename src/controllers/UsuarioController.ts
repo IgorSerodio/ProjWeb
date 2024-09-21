@@ -64,9 +64,9 @@ class UsuarioController {
 
       const hashSenha = await bcrypt.hash(senha, 10);
       const usuario = await UsuarioService.create({ email, hashSenha, apelido, adm });
-      res.status(201).json(usuario);
+      return res.status(201).json(usuario);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao criar usuário' });
+      return res.status(500).json({ error: 'Erro ao criar usuário' });
     }
   }
 
@@ -84,9 +84,9 @@ class UsuarioController {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
-      res.status(200).json(usuario);
+      return res.status(200).json(usuario);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao buscar usuário por email' });
+      return res.status(500).json({ error: 'Erro ao buscar usuário por email' });
     }
   }
 
@@ -104,9 +104,9 @@ class UsuarioController {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
-      res.status(200).json(usuario);
+      return res.status(200).json(usuario);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao buscar usuário' });
+      return res.status(500).json({ error: 'Erro ao buscar usuário' });
     }
   }
 
@@ -141,9 +141,36 @@ class UsuarioController {
     try {
       const hashSenha = await bcrypt.hash(senha, 10);
       const usuario = await UsuarioService.update(parseInt(id), { hashSenha, apelido });
-      res.status(200).json(usuario);
+      return res.status(200).json(usuario);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao atualizar usuário' });
+      return res.status(500).json({ error: 'Erro ao atualizar usuário' });
+    }
+  }
+
+  async delete(req: AuthenticatedRequest, res: Response) {
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ error: 'ID inválido' });
+    }
+
+    if (req.usuario !== undefined) {
+      if (req.usuario.id != id && !req.usuario.adm) {
+        return res.status(403).json({ error: 'Acesso negado. Você só pode deletar sua própria conta ou ser administrador' });
+      }
+    }
+
+    try {
+      const usuario = await UsuarioService.getById(parseInt(id));
+      if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+      const result = await UsuarioService.delete(parseInt(id));
+      return res.status(200).json({
+        message: "Usuário deletado com sucesso"
+      });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao deletar usuário' });
     }
   }
 }

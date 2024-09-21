@@ -9,7 +9,7 @@
  },
  "include": [
    "./**/*.ts"
- ],
+, "tests/UsuarioRoutes.test.js", "src/config.js" ],
  "exclude": [
    "dist",
    "node_modules",

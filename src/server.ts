@@ -247,6 +247,39 @@ app.get('/usuarios/:id', UsuarioController.getById);
 app.put('/usuarios/:id', autenticarToken(), UsuarioController.update);
 
 /**
+* @swagger
+* /usuarios/{id}:
+*   delete:
+*     tags: [Usuarios]
+*     summary: Deleta um usuário
+*     security:
+*       - bearerAuth: []
+*     description: Remove um usuário.
+*     parameters:
+*       - in: path
+*         name: id
+*         required: true
+*         schema:
+*           type: integer
+*           example: 1
+*         description: ID do usuário a ser deletado.
+*     responses:
+*       '204':
+*         description: Usuário deletado com sucesso
+*       '500':
+*         description: Erro ao deletar usuário
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   example: "Erro ao deletar usuário"
+*/
+app.delete('/usuarios/:id', autenticarToken(), UsuarioController.delete);
+
+/**
  * @swagger
  * tags:
  *   name: Receitas
@@ -261,14 +294,6 @@ app.put('/usuarios/:id', autenticarToken(), UsuarioController.update);
  *     summary: Cria uma nova receita
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -429,13 +454,6 @@ app.get('/receitas/ingredientes', ReceitaController.getByIngredientes);
  *           type: integer
  *           example: 1
  *         description: ID da receita a ser atualizada.
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -515,13 +533,6 @@ app.put('/receitas/:id', autenticarToken(),  ReceitaController.update);
 *           type: integer
 *           example: 1
 *         description: ID da receita a ser deletada.
-*       - name: authorization
-*         in: header
-*         required: true
-*         description: "Token JWT de autenticação"
-*         schema:
-*           type: string
-*           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 *     responses:
 *       '204':
 *         description: Receita deletada com sucesso
@@ -607,14 +618,6 @@ app.get('/ingredientes/:nome', IngredienteController.getByNome);
  *     summary: Cria um novo ingrediente
  *     security:
  *       - bearerAuth: []
- *     parameters: 
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -658,13 +661,6 @@ app.post('/ingredientes', autenticarToken(true), IngredienteController.create);
  *         required: true
  *         schema:
  *           type: string
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     responses:
  *       204:
  *         description: Ingrediente deletado com sucesso
@@ -696,14 +692,6 @@ app.delete('/ingredientes/:nome', autenticarToken(true), IngredienteController.d
  *     summary: Cria uma nova avaliação
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -741,7 +729,7 @@ app.delete('/ingredientes/:nome', autenticarToken(true), IngredienteController.d
 app.post('/avaliacoes', autenticarToken(),  AvaliacaoController.create);
 /**
  * @swagger
- * /avaliacoes/{idDaReceita}:
+ * /avaliacoes/receitas/{idDaReceita}:
  *   get:
  *     tags: [Avaliações]
  *     summary: Busca avaliações por ID da receita
@@ -772,7 +760,7 @@ app.post('/avaliacoes', autenticarToken(),  AvaliacaoController.create);
  *       500:
  *         description: Erro ao buscar avaliações
  */
-app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController.getByReceitaId);
+app.get('/avaliacoes/receita/:idDaReceita', AvaliacaoController.getByReceitaId);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
@@ -792,13 +780,6 @@ app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController.getByReceitaId)
  *         required: true
  *         schema:
  *           type: integer
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -849,13 +830,6 @@ app.put('/avaliacoes/:idDoUsuario/:idDaReceita', autenticarToken(),  AvaliacaoCo
  *         required: true
  *         schema:
  *           type: integer
- *       - name: authorization
- *         in: header
- *         required: true
- *         description: "Token JWT de autenticação"
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     responses:
  *       204:
  *         description: Avaliação deletada com sucesso

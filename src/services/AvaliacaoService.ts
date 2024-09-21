@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -14,23 +14,37 @@ class AvaliacaoService {
     });
   }
 
-  async findByReceitaIdAndUsuarioId(idDaReceita: number, idDoUsuario: number) {
-    return prisma.avaliacao.findMany({
-      where: { idDaReceita, idDoUsuario },
-      include: { usuario: true }
+  async deleteByReceitaId(idDaReceita: number) {
+    return prisma.avaliacao.deleteMany({
+      where: { idDaReceita },
+    });
+  }
+
+  async findByUsuarioIdAndReceitaId(idDoUsuario: number, idDaReceita: number) {
+    return prisma.avaliacao.findUnique({
+      where: {  idDoUsuario_idDaReceita: {
+        idDoUsuario,
+        idDaReceita
+      } }
     });
   }
 
   async update(idDoUsuario: number, idDaReceita: number, data: { nota: number; comentario?: string }) {
-    return prisma.avaliacao.updateMany({
-      where: { idDoUsuario, idDaReceita },
+    return prisma.avaliacao.update({
+      where: { idDoUsuario_idDaReceita: {
+        idDoUsuario,
+        idDaReceita
+      } },
       data
     });
   }
 
   async delete(idDoUsuario: number, idDaReceita: number) {
-    return prisma.avaliacao.deleteMany({
-      where: { idDoUsuario, idDaReceita }
+    return prisma.avaliacao.delete({
+      where: { idDoUsuario_idDaReceita: {
+        idDoUsuario,
+        idDaReceita
+      } }
     });
   }
   

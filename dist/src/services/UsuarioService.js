@@ -32,5 +32,10 @@ class UsuarioService {
             return prisma.usuario.update({ where: { id }, data });
         });
     }
+    delete(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield prisma.usuario.delete({ where: { id } });
+        });
+    }
 }
 exports.default = new UsuarioService();

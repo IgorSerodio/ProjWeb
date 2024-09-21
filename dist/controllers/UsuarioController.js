@@ -16,7 +16,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const UsuarioService_1 = __importDefault(require("../services/UsuarioService"));
 const config_1 = __importDefault(require("../config"));
-const jwtSecretKey = config_1.default.jwtSecretKey || '';
+const jwtSecretKey = config_1.default.jwtSecretKey;
 class UsuarioController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -65,10 +65,10 @@ class UsuarioController {
                 }
                 const hashSenha = yield bcrypt_1.default.hash(senha, 10);
                 const usuario = yield UsuarioService_1.default.create({ email, hashSenha, apelido, adm });
-                res.status(201).json(usuario);
+                return res.status(201).json(usuario);
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao criar usuário' });
+                return res.status(500).json({ error: 'Erro ao criar usuário' });
             }
         });
     }
@@ -83,10 +83,10 @@ class UsuarioController {
                 if (!usuario) {
                     return res.status(404).json({ error: 'Usuário não encontrado' });
                 }
-                res.status(200).json(usuario);
+                return res.status(200).json(usuario);
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao buscar usuário por email' });
+                return res.status(500).json({ error: 'Erro ao buscar usuário por email' });
             }
         });
     }
@@ -101,10 +101,10 @@ class UsuarioController {
                 if (!usuario) {
                     return res.status(404).json({ error: 'Usuário não encontrado' });
                 }
-                res.status(200).json(usuario);
+                return res.status(200).json(usuario);
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao buscar usuário' });
+                return res.status(500).json({ error: 'Erro ao buscar usuário' });
             }
         });
     }
@@ -133,10 +133,36 @@ class UsuarioController {
             try {
                 const hashSenha = yield bcrypt_1.default.hash(senha, 10);
                 const usuario = yield UsuarioService_1.default.update(parseInt(id), { hashSenha, apelido });
-                res.status(200).json(usuario);
+                return res.status(200).json(usuario);
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao atualizar usuário' });
+                return res.status(500).json({ error: 'Erro ao atualizar usuário' });
+            }
+        });
+    }
+    delete(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            if (!id || isNaN(Number(id))) {
+                return res.status(400).json({ error: 'ID inválido' });
+            }
+            if (req.usuario !== undefined) {
+                if (req.usuario.id != id && !req.usuario.adm) {
+                    return res.status(403).json({ error: 'Acesso negado. Você só pode deletar sua própria conta ou ser administrador' });
+                }
+            }
+            try {
+                const usuario = yield UsuarioService_1.default.getById(parseInt(id));
+                if (!usuario) {
+                    return res.status(404).json({ error: 'Usuário não encontrado' });
+                }
+                const result = yield UsuarioService_1.default.delete(parseInt(id));
+                return res.status(200).json({
+                    message: "Usuário deletado com sucesso"
+                });
+            }
+            catch (error) {
+                return res.status(500).json({ error: 'Erro ao deletar usuário' });
             }
         });
     }

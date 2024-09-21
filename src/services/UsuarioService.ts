@@ -18,6 +18,10 @@ class UsuarioService {
   async update(id: number, data: { hashSenha: string; apelido: string }) {
     return prisma.usuario.update({ where: { id }, data });
   }
+
+  async delete(id: number) {
+    await prisma.usuario.delete({ where: { id } });
+  }
 }
 
 export default new UsuarioService();
