@@ -25,41 +25,26 @@ class AvaliacaoService {
             });
         });
     }
-    deleteByReceitaId(idDaReceita) {
+    findByReceitaIdAndUsuarioId(idDaReceita, idDoUsuario) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.deleteMany({
-                where: { idDaReceita },
-            });
-        });
-    }
-    findByUsuarioIdAndReceitaId(idDoUsuario, idDaReceita) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.findUnique({
-                where: { idDoUsuario_idDaReceita: {
-                        idDoUsuario,
-                        idDaReceita
-                    } }
+            return prisma.avaliacao.findMany({
+                where: { idDaReceita, idDoUsuario },
+                include: { usuario: true }
             });
         });
     }
     update(idDoUsuario, idDaReceita, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.update({
-                where: { idDoUsuario_idDaReceita: {
-                        idDoUsuario,
-                        idDaReceita
-                    } },
+            return prisma.avaliacao.updateMany({
+                where: { idDoUsuario, idDaReceita },
                 data
             });
         });
     }
     delete(idDoUsuario, idDaReceita) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.avaliacao.delete({
-                where: { idDoUsuario_idDaReceita: {
-                        idDoUsuario,
-                        idDaReceita
-                    } }
+            return prisma.avaliacao.deleteMany({
+                where: { idDoUsuario, idDaReceita }
             });
         });
     }

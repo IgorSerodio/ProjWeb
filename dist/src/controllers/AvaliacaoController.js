@@ -32,7 +32,7 @@ class AvaliacaoController {
                 }
             }
             try {
-                const avaliacaoExistente = yield AvaliacaoService_1.default.findByUsuarioIdAndReceitaId(idDoUsuario, idDaReceita);
+                const avaliacaoExistente = yield AvaliacaoService_1.default.findByReceitaIdAndUsuarioId(idDaReceita, idDoUsuario);
                 if (avaliacaoExistente) {
                     return res.status(409).json({ error: 'Um usuário só pode deixar uma avaliação por receita' });
                 }
@@ -40,19 +40,19 @@ class AvaliacaoController {
                 res.status(201).json(avaliacao);
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao criar avaliação' });
+                res.status(400).json({ error: 'Erro ao criar avaliação' });
             }
         });
     }
     getByReceitaId(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { idDaReceita } = req.params;
-            if (isNaN(parseInt(idDaReceita))) {
+            if (isNaN(Number(idDaReceita))) {
                 return res.status(400).json({ error: 'idDaReceita deve ser um número' });
             }
             try {
-                const avaliacoes = yield AvaliacaoService_1.default.findByReceitaId(parseInt(idDaReceita));
-                return res.status(200).json(avaliacoes);
+                const avaliacoes = yield AvaliacaoService_1.default.findByReceitaId(Number(idDaReceita));
+                res.status(200).json(avaliacoes);
             }
             catch (error) {
                 res.status(400).json({ error: 'Erro ao buscar avaliações' });
@@ -62,7 +62,7 @@ class AvaliacaoController {
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { idDoUsuario, idDaReceita } = req.params;
-            if (isNaN(parseInt(idDoUsuario)) || isNaN(parseInt(idDaReceita))) {
+            if (isNaN(Number(idDoUsuario)) || isNaN(Number(idDaReceita))) {
                 return res.status(400).json({ error: 'idDoUsuario e idDaReceita devem ser números' });
             }
             if (req.usuario != undefined) {
@@ -78,22 +78,21 @@ class AvaliacaoController {
                 return res.status(400).json({ error: 'Comentário deve ser uma string' });
             }
             try {
-                const avaliacao = yield AvaliacaoService_1.default.findByUsuarioIdAndReceitaId(parseInt(idDoUsuario), parseInt(idDaReceita));
-                if (!avaliacao) {
+                const avaliacao = yield AvaliacaoService_1.default.update(Number(idDoUsuario), Number(idDaReceita), { nota, comentario });
+                if (avaliacao.count === 0) {
                     return res.status(404).json({ error: 'Avaliação não encontrada para o usuário e receita especificados' });
                 }
-                const avaliacaoAtualizada = yield AvaliacaoService_1.default.update(parseInt(idDoUsuario), parseInt(idDaReceita), { nota, comentario });
-                res.status(200).json(avaliacaoAtualizada);
+                res.status(200).json({ message: 'Avaliação atualizada com sucesso' });
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao atualizar avaliação' });
+                res.status(400).json({ error: 'Erro ao atualizar avaliação' });
             }
         });
     }
     delete(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { idDoUsuario, idDaReceita } = req.params;
-            if (isNaN(parseInt(idDoUsuario)) || isNaN(parseInt(idDaReceita))) {
+            if (isNaN(Number(idDoUsuario)) || isNaN(Number(idDaReceita))) {
                 return res.status(400).json({ error: 'idDoUsuario e idDaReceita devem ser números' });
             }
             if (req.usuario != undefined) {
@@ -102,15 +101,14 @@ class AvaliacaoController {
                 }
             }
             try {
-                const avaliacao = yield AvaliacaoService_1.default.findByUsuarioIdAndReceitaId(parseInt(idDoUsuario), parseInt(idDaReceita));
-                if (!avaliacao) {
+                const deleteCount = yield AvaliacaoService_1.default.delete(Number(idDoUsuario), Number(idDaReceita));
+                if (deleteCount.count === 0) {
                     return res.status(404).json({ error: 'Avaliação não encontrada para o usuário e receita especificados' });
                 }
-                yield AvaliacaoService_1.default.delete(parseInt(idDoUsuario), parseInt(idDaReceita));
-                res.status(200).json({ message: "Avaliação deletada com sucesso" });
+                res.status(204).send();
             }
             catch (error) {
-                res.status(500).json({ error: 'Erro ao deletar avaliação' });
+                res.status(400).json({ error: 'Erro ao deletar avaliação' });
             }
         });
     }

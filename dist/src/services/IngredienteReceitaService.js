@@ -11,31 +11,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-class UsuarioService {
-    create(data) {
+class IngredienteReceitaService {
+    createMany(ingredientes) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.usuario.create({ data });
+            return prisma.ingredienteReceita.createMany({ data: ingredientes });
         });
     }
-    getByEmail(email) {
+    deleteByReceitaId(idDaReceita) {
         return __awaiter(this, void 0, void 0, function* () {
-            return prisma.usuario.findUnique({ where: { email } });
-        });
-    }
-    getById(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return prisma.usuario.findUnique({ where: { id } });
-        });
-    }
-    update(id, data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return prisma.usuario.update({ where: { id }, data });
-        });
-    }
-    delete(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield prisma.usuario.delete({ where: { id } });
+            return prisma.ingredienteReceita.deleteMany({ where: { idDaReceita } });
         });
     }
 }
-exports.default = new UsuarioService();
+exports.default = new IngredienteReceitaService();

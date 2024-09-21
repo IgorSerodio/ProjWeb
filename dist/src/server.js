@@ -272,7 +272,7 @@ app.put('/usuarios/:id', (0, auth_1.autenticarToken)(), UsuarioController_1.defa
 *                   type: string
 *                   example: "Erro ao deletar usuário"
 */
-app.delete('/usuarios/:id', (0, auth_1.autenticarToken)(), UsuarioController_1.default.delete);
+app.delete('/usuario/:id', (0, auth_1.autenticarToken)(), UsuarioController_1.default.delete);
 /**
  * @swagger
  * tags:
@@ -718,7 +718,7 @@ app.delete('/ingredientes/:nome', (0, auth_1.autenticarToken)(true), Ingrediente
 app.post('/avaliacoes', (0, auth_1.autenticarToken)(), AvaliacaoController_1.default.create);
 /**
  * @swagger
- * /avaliacoes/receitas/{idDaReceita}:
+ * /avaliacoes/{idDaReceita}:
  *   get:
  *     tags: [Avaliações]
  *     summary: Busca avaliações por ID da receita
@@ -749,7 +749,7 @@ app.post('/avaliacoes', (0, auth_1.autenticarToken)(), AvaliacaoController_1.def
  *       500:
  *         description: Erro ao buscar avaliações
  */
-app.get('/avaliacoes/receita/:idDaReceita', AvaliacaoController_1.default.getByReceitaId);
+app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController_1.default.getByReceitaId);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:

@@ -11,7 +11,6 @@ class IngredienteService {
     return prisma.ingrediente.findUnique({ where: { nome } });
   }
 
-
   async create(data: { nome: string, tipoDeMedida: TipoDeMedida}) {
     return prisma.ingrediente.create({ data });
   }
@@ -20,5 +19,7 @@ class IngredienteService {
     await prisma.ingrediente.delete({ where: { nome } });
   }
 }
+
+export const tipoDeMedidaConst = TipoDeMedida;
 
 export default new IngredienteService();

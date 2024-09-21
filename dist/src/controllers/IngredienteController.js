@@ -50,7 +50,7 @@ class IngredienteController {
             if (!nome || typeof nome !== 'string' || nome.trim() === '') {
                 return res.status(400).json({ error: 'Nome do ingrediente é obrigatório e deve ser uma string não vazia' });
             }
-            if (!tipoDeMedida || !(Object.values(IngredienteService_2.tipoDeMedidaConst).includes(tipoDeMedida))) {
+            if (!tipoDeMedida || tipoDeMedida in Object.values(IngredienteService_2.tipoDeMedidaConst)) {
                 return res.status(400).json({ error: 'Tipo de medida ausente ou inválido' });
             }
             try {

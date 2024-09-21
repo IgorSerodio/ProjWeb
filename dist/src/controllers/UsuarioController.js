@@ -65,10 +65,10 @@ class UsuarioController {
                 }
                 const hashSenha = yield bcrypt_1.default.hash(senha, 10);
                 const usuario = yield UsuarioService_1.default.create({ email, hashSenha, apelido, adm });
-                return res.status(201).json(usuario);
+                res.status(201).json(usuario);
             }
             catch (error) {
-                return res.status(500).json({ error: 'Erro ao criar usuário' });
+                res.status(500).json({ error: 'Erro ao criar usuário' });
             }
         });
     }
@@ -83,10 +83,10 @@ class UsuarioController {
                 if (!usuario) {
                     return res.status(404).json({ error: 'Usuário não encontrado' });
                 }
-                return res.status(200).json(usuario);
+                res.status(200).json(usuario);
             }
             catch (error) {
-                return res.status(500).json({ error: 'Erro ao buscar usuário por email' });
+                res.status(500).json({ error: 'Erro ao buscar usuário por email' });
             }
         });
     }
@@ -101,10 +101,10 @@ class UsuarioController {
                 if (!usuario) {
                     return res.status(404).json({ error: 'Usuário não encontrado' });
                 }
-                return res.status(200).json(usuario);
+                res.status(200).json(usuario);
             }
             catch (error) {
-                return res.status(500).json({ error: 'Erro ao buscar usuário' });
+                res.status(500).json({ error: 'Erro ao buscar usuário' });
             }
         });
     }
@@ -133,10 +133,10 @@ class UsuarioController {
             try {
                 const hashSenha = yield bcrypt_1.default.hash(senha, 10);
                 const usuario = yield UsuarioService_1.default.update(parseInt(id), { hashSenha, apelido });
-                return res.status(200).json(usuario);
+                res.status(200).json(usuario);
             }
             catch (error) {
-                return res.status(500).json({ error: 'Erro ao atualizar usuário' });
+                res.status(500).json({ error: 'Erro ao atualizar usuário' });
             }
         });
     }
@@ -158,7 +158,7 @@ class UsuarioController {
                 }
                 const result = yield UsuarioService_1.default.delete(parseInt(id));
                 return res.status(200).json({
-                    message: "Usuário deletado com sucesso"
+                    message: "Usário deletado com sucesso"
                 });
             }
             catch (error) {

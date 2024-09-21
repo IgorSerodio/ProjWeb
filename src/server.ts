@@ -1,13 +1,15 @@
 import express, { Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
+import { autenticarToken } from './middleware/auth';
 import UsuarioController from './controllers/UsuarioController';
 import ReceitaController from './controllers/ReceitaController';
 import IngredienteController from './controllers/IngredienteController';
 import AvaliacaoController from './controllers/AvaliacaoController';
+import config from './config';
 
 const app = express();
-const port = 3000;
+const port = config.serverPort;
 
 app.use(express.json());
 
@@ -19,6 +21,20 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API para gerenciar receitas, ingredientes e avaliações',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ['./src/**/*.ts'],
 };
@@ -53,7 +69,7 @@ app.get('/swagger.json', (req: Request, res: Response) => {
  *             properties:
  *               email:
  *                 type: string
- *               hashSenha:
+ *               senha:
  *                 type: string
  *               apelido:
  *                 type: string
@@ -80,7 +96,40 @@ app.get('/swagger.json', (req: Request, res: Response) => {
  *       500:
  *         description: Erro ao criar usuário
  */
+
 app.post('/usuarios', UsuarioController.create);
+
+/**
+ * @swagger
+ * /usuarios/login:
+ *   post:
+ *     tags: [Usuarios]
+ *     summary: Realiza login do usuário
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login realizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string          
+ *       500:
+ *         description: Erro ao realizar login
+ */
+app.post('/usuarios/login', UsuarioController.login);
 /**
  * @swagger
  * /usuarios/email/{email}:
@@ -155,6 +204,8 @@ app.get('/usuarios/:id', UsuarioController.getById);
  *   put:
  *     tags: [Usuarios]
  *     summary: Atualiza um usuário
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
@@ -168,7 +219,7 @@ app.get('/usuarios/:id', UsuarioController.getById);
  *           schema:
  *             type: object
  *             properties:
- *               hashSenha:
+ *               senha:
  *                 type: string
  *               apelido:
  *                 type: string
@@ -193,7 +244,40 @@ app.get('/usuarios/:id', UsuarioController.getById);
  *       500:
  *         description: Erro ao atualizar usuário
  */
-app.put('/usuarios/:id', UsuarioController.update);
+app.put('/usuarios/:id', autenticarToken(), UsuarioController.update);
+
+/**
+* @swagger
+* /usuarios/{id}:
+*   delete:
+*     tags: [Usuarios]
+*     summary: Deleta um usuário
+*     security:
+*       - bearerAuth: []
+*     description: Remove um usuário.
+*     parameters:
+*       - in: path
+*         name: id
+*         required: true
+*         schema:
+*           type: integer
+*           example: 1
+*         description: ID do usuário a ser deletado.
+*     responses:
+*       '204':
+*         description: Usuário deletado com sucesso
+*       '500':
+*         description: Erro ao deletar usuário
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                   example: "Erro ao deletar usuário"
+*/
+app.delete('/usuarios/:id', autenticarToken(), UsuarioController.delete);
 
 /**
  * @swagger
@@ -208,6 +292,8 @@ app.put('/usuarios/:id', UsuarioController.update);
  *   post:
  *     tags: [Receitas]
  *     summary: Cria uma nova receita
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -260,7 +346,7 @@ app.put('/usuarios/:id', UsuarioController.update);
  *       500:
  *         description: Erro ao criar receita
  */
-app.post('/receitas', ReceitaController.create);
+app.post('/receitas', autenticarToken(), ReceitaController.create);
 /**
  * @swagger
  * /receitas/usuario/{idDoUsuario}:
@@ -357,6 +443,8 @@ app.get('/receitas/ingredientes', ReceitaController.getByIngredientes);
  *   put:
  *     tags: [Receitas]
  *     summary: Atualiza uma receita existente
+ *     security:
+ *       - bearerAuth: []
  *     description: Atualiza os detalhes de uma receita e seus ingredientes.
  *     parameters:
  *       - in: path
@@ -427,13 +515,15 @@ app.get('/receitas/ingredientes', ReceitaController.getByIngredientes);
  *                   type: string
  *                   example: "Erro ao atualizar receita"
  */
-app.put('/receitas/:id', ReceitaController.update);
+app.put('/receitas/:id', autenticarToken(),  ReceitaController.update);
 /**
 * @swagger
 * /receitas/{id}:
 *   delete:
 *     tags: [Receitas]
 *     summary: Deleta uma receita existente
+*     security:
+*       - bearerAuth: []
 *     description: Remove uma receita e seus ingredientes associados.
 *     parameters:
 *       - in: path
@@ -457,7 +547,7 @@ app.put('/receitas/:id', ReceitaController.update);
 *                   type: string
 *                   example: "Erro ao deletar receita"
 */
-app.delete('/receitas/:id', ReceitaController.delete);
+app.delete('/receitas/:id', autenticarToken(),  ReceitaController.delete);
 
 /**
  * @swagger
@@ -526,6 +616,8 @@ app.get('/ingredientes/:nome', IngredienteController.getByNome);
  *   post:
  *     tags: [Ingredientes]
  *     summary: Cria um novo ingrediente
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -554,13 +646,15 @@ app.get('/ingredientes/:nome', IngredienteController.getByNome);
  *       500:
  *         description: Erro ao criar ingrediente
  */
-app.post('/ingredientes', IngredienteController.create);
+app.post('/ingredientes', autenticarToken(true), IngredienteController.create);
 /**
  * @swagger
  * /ingredientes/{nome}:
  *   delete:
  *     tags: [Ingredientes]
  *     summary: Deleta um ingrediente pelo nome
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: nome
  *         in: path
@@ -581,7 +675,7 @@ app.post('/ingredientes', IngredienteController.create);
  *                   type: string
  *                   example: "Erro ao deletar ingrediente"
  */
-app.delete('/ingredientes/:nome', IngredienteController.delete);
+app.delete('/ingredientes/:nome', autenticarToken(true), IngredienteController.delete);
 
 /**
  * @swagger
@@ -596,6 +690,8 @@ app.delete('/ingredientes/:nome', IngredienteController.delete);
  *   post:
  *     tags: [Avaliações]
  *     summary: Cria uma nova avaliação
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -630,10 +726,10 @@ app.delete('/ingredientes/:nome', IngredienteController.delete);
  *       500:
  *         description: Erro ao criar avaliação
  */
-app.post('/avaliacoes', AvaliacaoController.create);
+app.post('/avaliacoes', autenticarToken(),  AvaliacaoController.create);
 /**
  * @swagger
- * /avaliacoes/{idDaReceita}:
+ * /avaliacoes/receitas/{idDaReceita}:
  *   get:
  *     tags: [Avaliações]
  *     summary: Busca avaliações por ID da receita
@@ -664,13 +760,15 @@ app.post('/avaliacoes', AvaliacaoController.create);
  *       500:
  *         description: Erro ao buscar avaliações
  */
-app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController.getByReceitaId);
+app.get('/avaliacoes/receita/:idDaReceita', AvaliacaoController.getByReceitaId);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
  *   put:
  *     tags: [Avaliações]
  *     summary: Atualiza uma avaliação
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: idDoUsuario
  *         in: path
@@ -712,13 +810,15 @@ app.get('/receitas/avaliacoes/:idDaReceita', AvaliacaoController.getByReceitaId)
  *       500:
  *         description: Erro ao atualizar avaliação
  */
-app.put('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController.update);
+app.put('/avaliacoes/:idDoUsuario/:idDaReceita', autenticarToken(),  AvaliacaoController.update);
 /**
  * @swagger
  * /avaliacoes/{idDoUsuario}/{idDaReceita}:
  *   delete:
  *     tags: [Avaliações]
  *     summary: Deleta uma avaliação
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: idDoUsuario
  *         in: path
@@ -736,7 +836,7 @@ app.put('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController.update);
  *       500:
  *         description: Erro ao deletar avaliação
  */
-app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', AvaliacaoController.delete);
+app.delete('/avaliacoes/:idDoUsuario/:idDaReceita', autenticarToken(),  AvaliacaoController.delete);
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
